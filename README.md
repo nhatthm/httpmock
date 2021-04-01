@@ -39,6 +39,7 @@ func Test_CustomResponse(t *testing.T) {
 			WithHeader("Authorization", "Bearer token").
 			WithBody(`{"name":"John Doe"}`).
 			After(time.Second).
+			ReturnCode(http.StatusCreated)
 			ReturnJSON(map[string]interface{}{
 				"id":   1,
 				"name": "John Doe",
@@ -51,7 +52,7 @@ func Test_CustomResponse(t *testing.T) {
 	requestBody := []byte(`{"name":"John Doe"}`)
 	code, _, body, _ := request(t, s.URL(), http.MethodPost, "/create", requestHeader, requestBody, time.Second)
 
-	expectedCode := http.StatusOK
+	expectedCode := http.StatusCreated
 	expectedBody := []byte(`{"id":1,"name":"John Doe"}`)
 
 	assert.Equal(t, expectedCode, code)
