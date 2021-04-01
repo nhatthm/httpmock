@@ -21,7 +21,7 @@ func GetBody(r *http.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	r.Body = io.NopCloser(bytes.NewReader(body))
+	r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 	return body, err
 }
