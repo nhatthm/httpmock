@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml/badge.svg)](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml)
 [![codecov](https://codecov.io/gh/nhatthm/httpmock/branch/master/graph/badge.svg?token=eTdAgDE2vR)](https://codecov.io/gh/nhatthm/httpmock)
 
-*httpmock* is a mock library implementing [httptest.Server](https://golang.org/pkg/net/http/httptest/#NewServer) to support HTTP behavioral tests.
+**httpmock** is a mock library implementing [httptest.Server](https://golang.org/pkg/net/http/httptest/#NewServer) to support HTTP behavioral tests.
 
 ## Install
 
