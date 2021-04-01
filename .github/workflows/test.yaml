@@ -1,4 +1,4 @@
-name: test-unit
+name: test
 on:
   push:
     branches:
