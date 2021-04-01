@@ -76,7 +76,8 @@ func (r *Request) unlock() {
 
 // WithHeader sets an expected header of the given request.
 //
-//    Server.Expect(http.MethodGet, "/path").WithHeader("foo": "bar")
+//    Server.Expect(http.MethodGet, "/path").
+//    	WithHeader("foo": "bar")
 //nolint:unparam
 func (r *Request) WithHeader(header, value string) *Request {
 	r.lock()
@@ -93,7 +94,8 @@ func (r *Request) WithHeader(header, value string) *Request {
 
 // WithHeaders sets a list of expected headers of the given request.
 //
-//    Server.Expect(http.MethodGet, "/path").WithHeaders(httpmock.Header{"foo": "bar"})
+//    Server.Expect(http.MethodGet, "/path").
+//    	WithHeaders(httpmock.Header{"foo": "bar"})
 func (r *Request) WithHeaders(headers Header) *Request {
 	r.lock()
 	defer r.unlock()
@@ -104,7 +106,8 @@ func (r *Request) WithHeaders(headers Header) *Request {
 
 // WithBody sets the expected body of the given request.
 //
-//    Server.Expect(http.MethodGet, "/path").WithBody("hello world!")
+//    Server.Expect(http.MethodGet, "/path").
+//    	WithBody("hello world!")
 //nolint:unparam
 func (r *Request) WithBody(body interface{}) *Request {
 	r.lock()
@@ -129,7 +132,8 @@ func (r *Request) WithBody(body interface{}) *Request {
 
 // ReturnCode sets the response code.
 //
-//    Server.Expect(http.MethodGet, "/path").ReturnCode(http.StatusBadRequest)
+//    Server.Expect(http.MethodGet, "/path").
+//    	ReturnCode(http.StatusBadRequest)
 func (r *Request) ReturnCode(code int) *Request {
 	r.lock()
 	defer r.unlock()
@@ -140,7 +144,8 @@ func (r *Request) ReturnCode(code int) *Request {
 
 // ReturnHeader sets a response header.
 //
-//    Server.Expect(http.MethodGet, "/path").ReturnHeader("foo", "bar")
+//    Server.Expect(http.MethodGet, "/path").
+//    	ReturnHeader("foo", "bar")
 //nolint:unparam
 func (r *Request) ReturnHeader(header, value string) *Request {
 	r.lock()
@@ -157,7 +162,8 @@ func (r *Request) ReturnHeader(header, value string) *Request {
 
 // ReturnHeaders sets a list of response headers.
 //
-//    Server.Expect(http.MethodGet, "/path").ReturnHeaders(httpmock.Header{"foo": "bar"})
+//    Server.Expect(http.MethodGet, "/path").
+//    	ReturnHeaders(httpmock.Header{"foo": "bar"})
 func (r *Request) ReturnHeaders(headers Header) *Request {
 	r.lock()
 	defer r.unlock()
@@ -238,7 +244,8 @@ func (r *Request) RequestHandler(handler RequestHandler) *Request {
 // Once indicates that that the mock should only return the value once.
 //
 //    Server.Expect(http.MethodGet, "/path").
-//    	Return("hello world!").Once()
+//    	Return("hello world!").
+//    	Once()
 func (r *Request) Once() *Request {
 	return r.Times(1)
 }
