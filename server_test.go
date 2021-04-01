@@ -251,25 +251,34 @@ func TestServer_Wait(t *testing.T) {
 	t.Parallel()
 
 	waitTime := 100 * time.Millisecond
+	expectedDelay := waitTime - 3*time.Millisecond
 
 	testCases := []struct {
 		scenario      string
-		waitUntil     <-chan time.Time
-		after         time.Duration
+		mockServer    func(s *Server)
 		expectedDelay time.Duration
 	}{
 		{
 			scenario: "no delay",
+			mockServer: func(s *Server) {
+				s.Expect(http.MethodGet, "/")
+			},
 		},
 		{
-			scenario:      "wait until",
-			waitUntil:     time.After(waitTime),
-			expectedDelay: waitTime,
+			scenario: "wait until",
+			mockServer: func(s *Server) {
+				s.Expect(http.MethodGet, "/").
+					WaitUntil(time.After(waitTime))
+			},
+			expectedDelay: expectedDelay,
 		},
 		{
-			scenario:      "after",
-			after:         waitTime,
-			expectedDelay: waitTime,
+			scenario: "after",
+			mockServer: func(s *Server) {
+				s.Expect(http.MethodGet, "/").
+					After(waitTime)
+			},
+			expectedDelay: expectedDelay,
 		},
 	}
 
@@ -279,19 +288,12 @@ func TestServer_Wait(t *testing.T) {
 			t.Parallel()
 
 			testingT := T()
-			s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
-				s.Expect(http.MethodGet, "/").
-					WaitUntil(tc.waitUntil).
-					After(tc.after).
-					Return(`hello world!`)
-			})
+			s := httpmock.MockServer(testingT, tc.mockServer)
 
-			code, _, body, elapsed := request(t, s.URL(), http.MethodGet, "/", nil, nil, tc.expectedDelay)
+			code, _, _, elapsed := request(t, s.URL(), http.MethodGet, "/", nil, nil, tc.expectedDelay)
 			expectedCode := http.StatusOK
-			expectedBody := []byte(`hello world!`)
 
 			assert.Equal(t, expectedCode, code)
-			assert.Equal(t, expectedBody, body)
 			assert.LessOrEqual(t, tc.expectedDelay, elapsed,
 				"unexpected delay, expected: %s, got %s", tc.expectedDelay, elapsed,
 			)
