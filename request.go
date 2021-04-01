@@ -197,7 +197,6 @@ func (r *Request) ReturnHeaders(headers Header) *Request {
 //
 //    Server.Expect(http.MethodGet, "/path").
 //    	Return("hello world!")
-//nolint:unparam
 func (r *Request) Return(v interface{}) *Request {
 	var body []byte
 
@@ -218,6 +217,14 @@ func (r *Request) Return(v interface{}) *Request {
 	return r.RequestHandler(func(_ *http.Request) ([]byte, error) {
 		return body, nil
 	})
+}
+
+// Returnf formats according to a format specifier and use it as the result to return to client.
+//
+//    Server.Expect(http.MethodGet, "/path").
+//    	Returnf("hello %s", "john")
+func (r *Request) Returnf(format string, args ...interface{}) *Request {
+	return r.Return(fmt.Sprintf(format, args...))
 }
 
 // ReturnJSON marshals the object using json.Marshal and uses it as the result to return to client.

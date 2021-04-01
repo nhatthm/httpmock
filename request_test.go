@@ -228,6 +228,18 @@ func TestRequest_Return(t *testing.T) {
 	}
 }
 
+func TestRequest_Returnf(t *testing.T) {
+	t.Parallel()
+
+	r := &Request{parent: &Server{}}
+	result, err := r.Returnf("hello %s", "john").Do(nil)
+
+	expectedBody := []byte(`hello john`)
+
+	assert.Equal(t, expectedBody, result)
+	assert.NoError(t, err)
+}
+
 func TestRequest_ReturnJSON(t *testing.T) {
 	t.Parallel()
 
