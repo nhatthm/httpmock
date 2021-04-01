@@ -86,6 +86,47 @@ func TestRequest_WithBody(t *testing.T) {
 	}
 }
 
+func TestRequest_WithBodyJSON(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario     string
+		body         interface{}
+		expectedBody []byte
+		expectPanic  bool
+	}{
+		{
+			scenario:     "success",
+			body:         map[string]string{"foo": "bar"},
+			expectedBody: []byte(`{"foo":"bar"}`),
+		},
+		{
+			scenario:    "panic",
+			body:        make(chan struct{}, 1),
+			expectPanic: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			r := &Request{parent: &Server{}}
+
+			if tc.expectPanic {
+				assert.Panics(t, func() {
+					r.WithBodyJSON(tc.body)
+				})
+			} else {
+				r.WithBodyJSON(tc.body)
+
+				assert.Equal(t, tc.expectedBody, r.RequestBody)
+			}
+		})
+	}
+}
+
 func TestRequest_ReturnCode(t *testing.T) {
 	t.Parallel()
 

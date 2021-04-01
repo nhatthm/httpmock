@@ -108,7 +108,6 @@ func (r *Request) WithHeaders(headers Header) *Request {
 //
 //    Server.Expect(http.MethodGet, "/path").
 //    	WithBody("hello world!")
-//nolint:unparam
 func (r *Request) WithBody(body interface{}) *Request {
 	r.lock()
 	defer r.unlock()
@@ -128,6 +127,20 @@ func (r *Request) WithBody(body interface{}) *Request {
 	}
 
 	return r
+}
+
+// WithBodyJSON marshals the object and use it as the expected body of the given request.
+//
+//    Server.Expect(http.MethodGet, "/path").
+//    	WithBodyJSON(map[string]string{"foo": "bar"})
+// nolint:unparam
+func (r *Request) WithBodyJSON(v interface{}) *Request {
+	body, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+
+	return r.WithBody(body)
 }
 
 // ReturnCode sets the response code.
