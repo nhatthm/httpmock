@@ -129,6 +129,14 @@ func (r *Request) WithBody(body interface{}) *Request {
 	return r
 }
 
+// WithBodyf formats according to a format specifier and use it as the expected body of the given request.
+//
+//    Server.Expect(http.MethodGet, "/path").
+//    	WithBodyf("hello %s", "john)
+func (r *Request) WithBodyf(format string, args ...interface{}) *Request {
+	return r.WithBody(fmt.Sprintf(format, args...))
+}
+
 // WithBodyJSON marshals the object and use it as the expected body of the given request.
 //
 //    Server.Expect(http.MethodGet, "/path").

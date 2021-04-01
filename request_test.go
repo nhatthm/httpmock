@@ -86,6 +86,17 @@ func TestRequest_WithBody(t *testing.T) {
 	}
 }
 
+func TestRequest_WithBodyf(t *testing.T) {
+	t.Parallel()
+
+	r := &Request{parent: &Server{}}
+	expectedBody := []byte(`hello john`)
+
+	r.WithBodyf("hello %s", "john")
+
+	assert.Equal(t, expectedBody, r.RequestBody)
+}
+
 func TestRequest_WithBodyJSON(t *testing.T) {
 	t.Parallel()
 
