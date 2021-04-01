@@ -2,6 +2,7 @@ package httpmock
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -184,6 +185,24 @@ func TestRequest_ReturnJSON(t *testing.T) {
 	result, err := r.Do(nil)
 
 	assert.Equal(t, `{"foo":"bar"}`, string(result))
+	assert.NoError(t, err)
+}
+
+func TestRequest_ReturnFile(t *testing.T) {
+	t.Parallel()
+
+	r := &Request{parent: &Server{}}
+
+	// File does not exist.
+	assert.Panics(t, func() {
+		r.ReturnFile("foo")
+	})
+
+	r.ReturnFile("resources/fixtures/response.txt")
+
+	result, err := r.Do(nil)
+
+	assert.Equal(t, `hello world!`, strings.TrimSpace(string(result)))
 	assert.NoError(t, err)
 }
 

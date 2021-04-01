@@ -3,7 +3,10 @@ package httpmock
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -192,10 +195,29 @@ func (r *Request) Return(v interface{}) *Request {
 
 // ReturnJSON marshals the object using json.Marshal and uses it as the result to return to client.
 //
-//    Server.Expect(http.MethodGet, "/path").ReturnJSON(map[string]string{"foo": "bar"})
+//    Server.Expect(http.MethodGet, "/path").
+//    	ReturnJSON(map[string]string{"foo": "bar"})
 func (r *Request) ReturnJSON(body interface{}) *Request {
 	return r.RequestHandler(func(_ *http.Request) ([]byte, error) {
 		return json.Marshal(body)
+	})
+}
+
+// ReturnFile reads the file using ioutil.ReadFile and uses it as the result to return to client.
+//
+//    Server.Expect(http.MethodGet, "/path").
+//    	ReturnFile("resources/fixtures/response.txt")
+// nolint:unparam
+func (r *Request) ReturnFile(filePath string) *Request {
+	filePath = filepath.Join(".", filepath.Clean(filePath))
+
+	if _, err := os.Stat(filePath); err != nil {
+		panic(err)
+	}
+
+	return r.RequestHandler(func(_ *http.Request) ([]byte, error) {
+		// nolint:gosec // filePath is cleaned above.
+		return ioutil.ReadFile(filePath)
 	})
 }
 
