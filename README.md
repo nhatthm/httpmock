@@ -28,7 +28,7 @@ func Test_Simple(t *testing.T) {
 	expectedBody := []byte(`hello world!`)
 
 	assert.Equal(t, expectedCode, code)
-	assert.Equal(t, expectedBody, body)\
+	assert.Equal(t, expectedBody, body)
   
 	// Success
 }
