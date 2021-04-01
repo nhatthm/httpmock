@@ -26,7 +26,7 @@ func MockServer(t TestingT, mocks ...func(s *Server)) *Server {
 }
 
 // New creates a mocker server with expectations and assures that ExpectationsWereMet() is called.
-func New(mocks ...func(*Server)) Mocker {
+func New(mocks ...func(s *Server)) Mocker {
 	return func(t TestingT) *Server {
 		s := MockServer(t, mocks...)
 
