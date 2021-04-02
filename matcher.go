@@ -112,25 +112,40 @@ func SequentialRequestMatcher(options ...RequestMatcherOption) RequestMatcher {
 	}
 }
 
+// WithURIMatcher sets URIMatcher.
+func WithURIMatcher(m URIMatcher) RequestMatcherOption {
+	return func(c *RequestMatcherConfig) {
+		c.matchURI = m
+	}
+}
+
+// WithHeaderMatcher sets HeaderMatcher.
+func WithHeaderMatcher(m HeaderMatcher) RequestMatcherOption {
+	return func(c *RequestMatcherConfig) {
+		c.matchHeader = m
+	}
+}
+
+// WithBodyMatcher sets BodyMatcher.
+func WithBodyMatcher(m BodyMatcher) RequestMatcherOption {
+	return func(c *RequestMatcherConfig) {
+		c.matchBody = m
+	}
+}
+
 // WithExactURIMatcher sets URIMatcher to ExactURIMatcher.
 func WithExactURIMatcher() RequestMatcherOption {
-	return func(c *RequestMatcherConfig) {
-		c.matchURI = ExactURIMatcher()
-	}
+	return WithURIMatcher(ExactURIMatcher())
 }
 
 // WithExactHeaderMatcher sets HeaderMatcher to ExactHeaderMatcher.
 func WithExactHeaderMatcher() RequestMatcherOption {
-	return func(c *RequestMatcherConfig) {
-		c.matchHeader = ExactHeaderMatcher()
-	}
+	return WithHeaderMatcher(ExactHeaderMatcher())
 }
 
 // WithExactBodyMatcher sets BodyMatcher to ExactBodyMatcher.
 func WithExactBodyMatcher() RequestMatcherOption {
-	return func(c *RequestMatcherConfig) {
-		c.matchBody = ExactBodyMatcher()
-	}
+	return WithBodyMatcher(ExactBodyMatcher())
 }
 
 // ExactURIMatcher matches an url by checking if it is equal to the expectation.
