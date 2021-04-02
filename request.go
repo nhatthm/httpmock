@@ -214,7 +214,7 @@ func (r *Request) Return(v interface{}) *Request {
 		panic(fmt.Errorf("%w: unexpected response data type: %T", ErrUnsupportedDataType, body))
 	}
 
-	return r.RequestHandler(func(_ *http.Request) ([]byte, error) {
+	return r.Handler(func(_ *http.Request) ([]byte, error) {
 		return body, nil
 	})
 }
@@ -232,7 +232,7 @@ func (r *Request) Returnf(format string, args ...interface{}) *Request {
 //    Server.Expect(http.MethodGet, "/path").
 //    	ReturnJSON(map[string]string{"foo": "bar"})
 func (r *Request) ReturnJSON(body interface{}) *Request {
-	return r.RequestHandler(func(_ *http.Request) ([]byte, error) {
+	return r.Handler(func(_ *http.Request) ([]byte, error) {
 		return json.Marshal(body)
 	})
 }
@@ -249,19 +249,19 @@ func (r *Request) ReturnFile(filePath string) *Request {
 		panic(err)
 	}
 
-	return r.RequestHandler(func(_ *http.Request) ([]byte, error) {
+	return r.Handler(func(_ *http.Request) ([]byte, error) {
 		// nolint:gosec // filePath is cleaned above.
 		return ioutil.ReadFile(filePath)
 	})
 }
 
-// RequestHandler sets the handler to handle a given request.
+// Handler sets the handler to handle a given request.
 //
 //    Server.Expect(http.MethodGet, "/path").
-//		RequestHandler(func(_ *http.Request) ([]byte, error) {
+//		Handler(func(_ *http.Request) ([]byte, error) {
 //			return []byte("hello world!"), nil
 //		})
-func (r *Request) RequestHandler(handler RequestHandler) *Request {
+func (r *Request) Handler(handler RequestHandler) *Request {
 	r.lock()
 	defer r.unlock()
 	r.Do = handler
