@@ -83,6 +83,48 @@ func (s *Server) Expect(method, requestURI string) *Request {
 	return c
 }
 
+// ExpectGet adds a new expected http.MethodGet request.
+//
+//   Server.ExpectGet("/path")
+func (s *Server) ExpectGet(requestURI string) *Request {
+	return s.Expect(http.MethodGet, requestURI)
+}
+
+// ExpectHead adds a new expected http.MethodHead request.
+//
+//   Server.ExpectHead("/path")
+func (s *Server) ExpectHead(requestURI string) *Request {
+	return s.Expect(http.MethodHead, requestURI)
+}
+
+// ExpectPost adds a new expected http.MethodPost request.
+//
+//   Server.ExpectPost("/path")
+func (s *Server) ExpectPost(requestURI string) *Request {
+	return s.Expect(http.MethodPost, requestURI)
+}
+
+// ExpectPut adds a new expected http.MethodPut request.
+//
+//   Server.ExpectPut("/path")
+func (s *Server) ExpectPut(requestURI string) *Request {
+	return s.Expect(http.MethodPut, requestURI)
+}
+
+// ExpectPatch adds a new expected http.MethodPatch request.
+//
+//   Server.ExpectPatch("/path")
+func (s *Server) ExpectPatch(requestURI string) *Request {
+	return s.Expect(http.MethodPatch, requestURI)
+}
+
+// ExpectDelete adds a new expected http.MethodDelete request.
+//
+//   Server.ExpectDelete("/path")
+func (s *Server) ExpectDelete(requestURI string) *Request {
+	return s.Expect(http.MethodDelete, requestURI)
+}
+
 // ExpectationsWereMet checks whether all queued expectations were met in order.
 // If any of them was not met - an error is returned.
 func (s *Server) ExpectationsWereMet() error {

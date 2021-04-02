@@ -2,15 +2,12 @@ package httpmock_test
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/nhatthm/httpmock"
 )
@@ -83,7 +80,7 @@ Error: method "POST" expected, "GET" received
 		{
 			scenario: "expected different uri",
 			mockServer: func(s *Server) {
-				s.Expect(http.MethodGet, "/path")
+				s.ExpectGet("/path")
 			},
 			expectedCode:    http.StatusInternalServerError,
 			expectedHeaders: Header{},
@@ -99,7 +96,7 @@ Error: request uri "/path" expected, "/" received
 		{
 			scenario: "expected header",
 			mockServer: func(s *Server) {
-				s.Expect(http.MethodGet, "/").
+				s.ExpectGet("/").
 					WithHeader("Content-Type", "application/json")
 			},
 			expectedCode:    http.StatusInternalServerError,
@@ -118,7 +115,7 @@ Error: header "Content-Type" with value "application/json" expected, "" received
 		{
 			scenario: "expected body",
 			mockServer: func(s *Server) {
-				s.Expect(http.MethodGet, "/").
+				s.ExpectGet("/").
 					WithBody(`{"foo":"bar"}`).
 					WithHeader("Content-Type", "application/json")
 			},
@@ -205,13 +202,78 @@ Error: expected request body: "{\"foo\":\"bar\"}", received: "{\"foo\":\"baz\"}"
 	}
 }
 
+func TestServer_ExpectAliases(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario       string
+		mockServer     func(s *Server)
+		expectedMethod string
+	}{
+		{
+			scenario: "GET",
+			mockServer: func(s *Server) {
+				s.ExpectGet("/")
+			},
+			expectedMethod: http.MethodGet,
+		},
+		{
+			scenario: "HEAD",
+			mockServer: func(s *Server) {
+				s.ExpectHead("/")
+			},
+			expectedMethod: http.MethodHead,
+		},
+		{
+			scenario: "POST",
+			mockServer: func(s *Server) {
+				s.ExpectPost("/")
+			},
+			expectedMethod: http.MethodPost,
+		},
+		{
+			scenario: "PUT",
+			mockServer: func(s *Server) {
+				s.ExpectPut("/")
+			},
+			expectedMethod: http.MethodPut,
+		},
+		{
+			scenario: "PATCH",
+			mockServer: func(s *Server) {
+				s.ExpectPatch("/")
+			},
+			expectedMethod: http.MethodPatch,
+		},
+		{
+			scenario: "DELETE",
+			mockServer: func(s *Server) {
+				s.ExpectDelete("/")
+			},
+			expectedMethod: http.MethodDelete,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			s := httpmock.MockServer(T(), tc.mockServer)
+
+			assert.Equal(t, tc.expectedMethod, s.ExpectedRequests[0].Method)
+			assert.Equal(t, "/", s.ExpectedRequests[0].RequestURI)
+		})
+	}
+}
+
 func TestServer_Repeatability(t *testing.T) {
 	t.Parallel()
 
 	testingT := T()
 
 	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
-		s.Expect(http.MethodGet, "/").
+		s.ExpectGet("/").
 			Return(`hello world!`).
 			Twice()
 	})
@@ -261,13 +323,13 @@ func TestServer_Wait(t *testing.T) {
 		{
 			scenario: "no delay",
 			mockServer: func(s *Server) {
-				s.Expect(http.MethodGet, "/")
+				s.ExpectGet("/")
 			},
 		},
 		{
 			scenario: "wait until",
 			mockServer: func(s *Server) {
-				s.Expect(http.MethodGet, "/").
+				s.ExpectGet("/").
 					WaitUntil(time.After(waitTime))
 			},
 			expectedDelay: expectedDelay,
@@ -275,7 +337,7 @@ func TestServer_Wait(t *testing.T) {
 		{
 			scenario: "after",
 			mockServer: func(s *Server) {
-				s.Expect(http.MethodGet, "/").
+				s.ExpectGet("/").
 					After(waitTime)
 			},
 			expectedDelay: expectedDelay,
@@ -307,8 +369,8 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 	testingT := T()
 
 	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
-		s.Expect(http.MethodGet, "/").Times(3)
-		s.Expect(http.MethodGet, "/path")
+		s.ExpectGet("/").Times(3)
+		s.ExpectGet("/path")
 	})
 
 	request := func() int {
@@ -338,6 +400,7 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)
 }
 
+// nolint:thelper // It is called in DoRequestWithTimeout.
 func request(
 	t *testing.T,
 	baseURL string,
@@ -346,48 +409,11 @@ func request(
 	body []byte,
 	waitTime time.Duration,
 ) (int, map[string]string, []byte, time.Duration) {
-	t.Helper()
-
-	var reqBody io.Reader
-
-	if body != nil {
-		reqBody = strings.NewReader(string(body))
-	}
-
-	req, err := http.NewRequest(method, baseURL+uri, reqBody)
-	require.NoError(t, err, "could not create a new request")
-
-	for header, value := range headers {
-		req.Header.Set(header, value)
-	}
-
-	timeout := waitTime + time.Second
-	client := http.Client{Timeout: timeout}
-
-	start := time.Now()
-	resp, err := client.Do(req)
-	elapsed := time.Since(start)
-
-	require.NoError(t, err, "could not make a request to mocked server")
-
-	respCode := resp.StatusCode
-	respHeaders := map[string]string(nil)
-
-	if len(resp.Header) > 0 {
-		respHeaders = map[string]string{}
-
-		for header := range resp.Header {
-			respHeaders[header] = resp.Header.Get(header)
-		}
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err, "could not read response body")
-
-	err = resp.Body.Close()
-	require.NoError(t, err, "could not close response body")
-
-	return respCode, respHeaders, respBody, elapsed
+	return httpmock.DoRequestWithTimeout(t,
+		method, baseURL+uri,
+		headers, body,
+		waitTime+time.Second,
+	)
 }
 
 func assertHeaders(t *testing.T, expected, headers Header) bool {
