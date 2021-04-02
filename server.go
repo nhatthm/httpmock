@@ -72,6 +72,8 @@ func (s *Server) Close() {
 }
 
 // Expect adds a new expected request.
+//
+//    Server.Expect(http.MethodGet, "/path").
 func (s *Server) Expect(method, requestURI string) *Request {
 	s.mu.Lock()
 	defer s.mu.Unlock()
