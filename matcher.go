@@ -10,7 +10,7 @@ import (
 type RequestMatcherOption func(c *RequestMatcherConfig)
 
 // RequestMatcher matches a request with one of the expectations.
-type RequestMatcher func(r *http.Request, expectations []*Request) (*Request, []*Request, error)
+type RequestMatcher func(t TestingT, r *http.Request, expectations []*Request) (*Request, []*Request, error)
 
 // RequestMatcherConfig is config of RequestMatcher.
 type RequestMatcherConfig struct {
@@ -20,13 +20,13 @@ type RequestMatcherConfig struct {
 }
 
 // URIMatcher matches an URI with an expectation.
-type URIMatcher func(expected, url string) bool
+type URIMatcher func(t TestingT, expected, url string) bool
 
 // BodyMatcher matches a body with an expectation.
-type BodyMatcher func(expected, body []byte) bool
+type BodyMatcher func(t TestingT, expected, body []byte) bool
 
 // HeaderMatcher matches header with an expectation.
-type HeaderMatcher func(expected, header string) bool
+type HeaderMatcher func(t TestingT, expected, header string) bool
 
 // DefaultRequestMatcher instantiates a SequentialRequestMatcher with ExactURIMatcher, ExactHeaderMatcher
 // and ExactBodyMatcher.
@@ -65,7 +65,7 @@ func ConfigureRequestMatcher(options ...RequestMatcherOption) *RequestMatcherCon
 func SequentialRequestMatcher(options ...RequestMatcherOption) RequestMatcher {
 	m := ConfigureRequestMatcher(options...)
 
-	return func(r *http.Request, expectedRequests []*Request) (*Request, []*Request, error) {
+	return func(t TestingT, r *http.Request, expectedRequests []*Request) (*Request, []*Request, error) {
 		expected := expectedRequests[0]
 
 		if expected.Method != r.Method {
@@ -74,7 +74,7 @@ func SequentialRequestMatcher(options ...RequestMatcherOption) RequestMatcher {
 			)
 		}
 
-		if !m.matchURI(expected.RequestURI, r.RequestURI) {
+		if !m.matchURI(t, expected.RequestURI, r.RequestURI) {
 			return nil, nil, MatcherError(expected, r,
 				"request uri %q expected, %q received", expected.RequestURI, r.RequestURI,
 			)
@@ -82,7 +82,7 @@ func SequentialRequestMatcher(options ...RequestMatcherOption) RequestMatcher {
 
 		for header, expectedValue := range expected.RequestHeader {
 			value := r.Header.Get(header)
-			if !m.matchHeader(expectedValue, value) {
+			if !m.matchHeader(t, expectedValue, value) {
 				return nil, nil, MatcherError(expected, r,
 					"header %q with value %q expected, %q received", header, expectedValue, value,
 				)
@@ -95,7 +95,7 @@ func SequentialRequestMatcher(options ...RequestMatcherOption) RequestMatcher {
 				return nil, nil, MatcherError(expected, r, err.Error())
 			}
 
-			if !m.matchBody(expected.RequestBody, body) {
+			if !m.matchBody(t, expected.RequestBody, body) {
 				return nil, nil, MatcherError(expected, r, "expected request body: %q, received: %q", string(expected.RequestBody), string(body))
 			}
 		}
@@ -150,21 +150,21 @@ func WithExactBodyMatcher() RequestMatcherOption {
 
 // ExactURIMatcher matches an url by checking if it is equal to the expectation.
 func ExactURIMatcher() URIMatcher {
-	return func(url, expected string) bool {
+	return func(_ TestingT, url, expected string) bool {
 		return assert.ObjectsAreEqual(expected, url)
 	}
 }
 
 // ExactHeaderMatcher matches a header by checking if it is equal to the expectation.
 func ExactHeaderMatcher() HeaderMatcher {
-	return func(expected, header string) bool {
+	return func(_ TestingT, expected, header string) bool {
 		return assert.ObjectsAreEqual(expected, header)
 	}
 }
 
 // ExactBodyMatcher matches a body by checking if it is equal to the expectation.
 func ExactBodyMatcher() BodyMatcher {
-	return func(expected, body []byte) bool {
+	return func(_ TestingT, expected, body []byte) bool {
 		return assert.ObjectsAreEqual(expected, body)
 	}
 }

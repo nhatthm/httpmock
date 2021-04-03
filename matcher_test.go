@@ -127,7 +127,7 @@ Error: expected request body: "expected body", received: "body"
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			expected, expectedRequests, err := SequentialRequestMatcher()(tc.request, tc.expectations)
+			expected, expectedRequests, err := SequentialRequestMatcher()(t, tc.request, tc.expectations)
 
 			assert.Equal(t, tc.expectedRequest, expected)
 			assert.Equal(t, tc.expectedRequests, expectedRequests)
@@ -169,7 +169,7 @@ func TestExactURIMatcher(t *testing.T) {
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			result := ExactURIMatcher()(tc.expectation, tc.uri)
+			result := ExactURIMatcher()(t, tc.expectation, tc.uri)
 
 			assert.Equal(t, tc.expected, result)
 		})
@@ -204,7 +204,7 @@ func TestExactHeaderMatcher(t *testing.T) {
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			result := ExactHeaderMatcher()(tc.expectation, tc.header)
+			result := ExactHeaderMatcher()(t, tc.expectation, tc.header)
 
 			assert.Equal(t, tc.expected, result)
 		})
@@ -239,7 +239,7 @@ func TestExactBodyMatcher(t *testing.T) {
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			result := ExactBodyMatcher()([]byte(tc.expectation), []byte(tc.body))
+			result := ExactBodyMatcher()(t, []byte(tc.expectation), []byte(tc.body))
 
 			assert.Equal(t, tc.expected, result)
 		})

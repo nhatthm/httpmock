@@ -176,7 +176,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expected, expectedRequests, err := s.matchRequest(r, s.ExpectedRequests)
+	expected, expectedRequests, err := s.matchRequest(s.test, r, s.ExpectedRequests)
 	if err != nil {
 		s.failResponsef(w, err.Error())
 
