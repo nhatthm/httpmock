@@ -75,9 +75,10 @@ func (s *Server) Close() {
 //
 //    Server.Expect(http.MethodGet, "/path").
 func (s *Server) Expect(method, requestURI string) *Request {
+	c := newRequest(s, method, requestURI).Once()
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	c := newRequest(s, method, requestURI)
 	s.ExpectedRequests = append(s.ExpectedRequests, c)
 
 	return c
@@ -140,6 +141,10 @@ func (s *Server) ExpectationsWereMet() error {
 	sb.WriteString("there are remaining expectations that were not met:\n")
 
 	for _, expected := range s.ExpectedRequests {
+		if expected.Repeatability < 1 {
+			continue
+		}
+
 		sb.WriteString("- ")
 		formatRequestTimes(&sb,
 			expected.Method,

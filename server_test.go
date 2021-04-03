@@ -371,6 +371,7 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
 		s.ExpectGet("/").Times(3)
 		s.ExpectGet("/path")
+		s.ExpectGet("/optional").Times(0)
 	})
 
 	request := func() int {

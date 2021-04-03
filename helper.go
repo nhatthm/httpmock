@@ -116,7 +116,7 @@ func formatRequest(w io.Writer, method, uri string, header Header, body []byte) 
 func formatRequestTimes(w io.Writer, method, uri string, header Header, body []byte, totalCalls, remainingCalls int) {
 	_, _ = fmt.Fprintf(w, "%s %s", method, uri)
 
-	if remainingCalls > 0 {
+	if remainingCalls > 0 && (totalCalls != 0 || remainingCalls != 1) {
 		_, _ = fmt.Fprintf(w, " (called: %d time(s), remaining: %d time(s))", totalCalls, remainingCalls)
 	}
 
