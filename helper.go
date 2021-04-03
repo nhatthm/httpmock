@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/textproto"
 	"sort"
 	"strings"
 	"testing"
@@ -100,13 +101,17 @@ func GetBody(r *http.Request) ([]byte, error) {
 // mergeHeaders merges a list of headers with some defaults. If a default header appears in the given headers, it
 // will not be merged, no matter what the value is.
 func mergeHeaders(headers, defaultHeaders map[string]string) map[string]string {
+	result := make(map[string]string, len(headers)+len(defaultHeaders))
+
 	for header, value := range defaultHeaders {
-		if _, ok := headers[header]; !ok {
-			headers[header] = value
-		}
+		result[textproto.CanonicalMIMEHeaderKey(header)] = value
 	}
 
-	return headers
+	for header, value := range headers {
+		result[textproto.CanonicalMIMEHeaderKey(header)] = value
+	}
+
+	return result
 }
 
 func formatRequest(w io.Writer, method, uri string, header Header, body []byte) {

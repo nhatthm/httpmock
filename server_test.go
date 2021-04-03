@@ -267,6 +267,58 @@ func TestServer_ExpectAliases(t *testing.T) {
 	}
 }
 
+func TestServer_WithDefaultHeaders(t *testing.T) {
+	t.Parallel()
+
+	testingT := T()
+
+	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+		s.WithDefaultResponseHeaders(httpmock.Header{
+			"Content-Type": "application/json",
+		})
+
+		s.ExpectGet("/text").
+			ReturnHeader("Content-Type", "text/plain").
+			ReturnHeader("X-ID", "1").
+			Return(`hello world!`)
+
+		s.ExpectGet("/json").
+			Return(`{"foo":"bar"}`)
+	})
+
+	request := func(uri string) (int, map[string]string, []byte) {
+		code, headers, body, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
+
+		return code, headers, body
+	}
+
+	expectedCode := http.StatusOK
+
+	// 1st request is ok.
+	expectedHeaders := map[string]string{"Content-Type": "text/plain", "X-ID": "1"}
+	expectedBody := []byte(`hello world!`)
+
+	code, headers, body := request("/text")
+
+	assert.Equal(t, expectedCode, code)
+	assertHeaders(t, expectedHeaders, headers)
+	assert.Equal(t, expectedBody, body)
+	assert.Empty(t, testingT.String())
+
+	// 2nd request is ok.
+	expectedHeaders = map[string]string{"Content-Type": "application/json"}
+	expectedBody = []byte(`{"foo":"bar"}`)
+
+	code, headers, body = request("/json")
+
+	assert.Equal(t, expectedCode, code)
+	assertHeaders(t, expectedHeaders, headers)
+	assert.Equal(t, expectedBody, body)
+	assert.Empty(t, testingT.String())
+
+	assert.NoError(t, s.ExpectationsWereMet())
+}
+
 func TestServer_Repeatability(t *testing.T) {
 	t.Parallel()
 
@@ -359,6 +411,8 @@ func TestServer_Wait(t *testing.T) {
 			assert.LessOrEqual(t, tc.expectedDelay, elapsed,
 				"unexpected delay, expected: %s, got %s", tc.expectedDelay, elapsed,
 			)
+
+			assert.NoError(t, s.ExpectationsWereMet())
 		})
 	}
 }
@@ -417,6 +471,7 @@ func request(
 	)
 }
 
+// nolint:unparam
 func assertHeaders(t *testing.T, expected, headers Header) bool {
 	t.Helper()
 
