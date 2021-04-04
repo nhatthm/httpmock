@@ -27,14 +27,26 @@ func MockServer(t TestingT, mocks ...func(s *Server)) *Server {
 
 // New creates a mocker server with expectations and assures that ExpectationsWereMet() is called.
 //
-//   mockServer := httpmock.New(func(s *Server) {
-//   	s.ExpectPost("/created").
+//   s := httpmock.New(func(s *Server) {
+//   	s.ExpectPost("/create").
 //   		WithHeader("Authorization", "Bearer token").
 //   		WithBody(`{"foo":"bar"}`).
 //   		ReturnCode(http.StatusCreated).
 //   		Return(`{"id":1,"foo":"bar"}`)
-//   })
-//   server := mockServer(t)
+//   })(t)
+//
+//   code, _, body, _ := httpmock.DoRequest(t,
+//   	http.MethodPost,
+//   	s.URL()+"/create",
+//   	map[string]string{"Authorization": "Bearer token"},
+//   	[]byte(`{"foo":"bar"}`),
+//   )
+//
+//   expectedCode := http.StatusCreated
+//   expectedBody := []byte(`{"id":1,"foo":"bar"}`)
+//
+//   assert.Equal(t, expectedCode, code)
+//   assert.Equal(t, expectedBody, body)
 func New(mocks ...func(s *Server)) Mocker {
 	return func(t TestingT) *Server {
 		s := MockServer(t, mocks...)

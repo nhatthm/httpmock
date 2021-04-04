@@ -2,9 +2,7 @@ package httpmock_test
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -17,26 +15,6 @@ type (
 	Server = httpmock.Server
 	Header = httpmock.Header
 )
-
-type TestingT struct {
-	strings.Builder
-}
-
-func (t *TestingT) Errorf(format string, args ...interface{}) {
-	_, _ = fmt.Fprintf(t, format, args...)
-}
-
-func (t *TestingT) FailNow() {
-	panic("failed")
-}
-
-func (t *TestingT) Cleanup(_ func()) {
-	// Do nothing.
-}
-
-func T() *TestingT {
-	return &TestingT{}
-}
 
 func TestServer(t *testing.T) {
 	t.Parallel()
@@ -332,7 +310,7 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 func TestServer_WithRequestMatcher(t *testing.T) {
 	t.Parallel()
 
-	testingT := T()
+	testingT := TWithCleanUp(t)
 
 	s := httpmock.New(func(s *httpmock.Server) {
 		s.WithRequestMatcher(func(
