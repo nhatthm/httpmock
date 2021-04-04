@@ -29,7 +29,9 @@ func (t *TestingT) Cleanup(clean func()) {
 }
 
 func T() *TestingT {
-	return &TestingT{}
+	return &TestingT{
+		clean: func() {},
+	}
 }
 
 func TWithCleanUp(upstream httpmock.TestingT) *TestingT {
