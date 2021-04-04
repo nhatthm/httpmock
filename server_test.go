@@ -1,6 +1,7 @@
 package httpmock_test
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -59,6 +60,15 @@ func TestServer(t *testing.T) {
 			expectedCode:    http.StatusInternalServerError,
 			expectedHeaders: Header{},
 			expectedBody:    `unexpected request received: GET /`,
+			expectedError:   true,
+		},
+		{
+			scenario:        "no expectation with body",
+			mockServer:      func(s *Server) {},
+			body:            []byte(`foobar`),
+			expectedCode:    http.StatusInternalServerError,
+			expectedHeaders: Header{},
+			expectedBody:    "unexpected request received: GET /, body:\nfoobar",
 			expectedError:   true,
 		},
 		{
@@ -317,6 +327,34 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 	assert.Empty(t, testingT.String())
 
 	assert.NoError(t, s.ExpectationsWereMet())
+}
+
+func TestServer_WithRequestMatcher(t *testing.T) {
+	t.Parallel()
+
+	testingT := T()
+
+	s := httpmock.New(func(s *httpmock.Server) {
+		s.WithRequestMatcher(func(
+			_ httpmock.TestingT,
+			_ *http.Request,
+			_ []*httpmock.Request,
+		) (*httpmock.Request, []*httpmock.Request, error) {
+			return nil, nil, errors.New("you shall not pass")
+		})
+
+		s.ExpectGet("/").
+			Return(`hello world!`)
+	})(testingT)
+
+	code, _, body, _ := request(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
+
+	expectedCode := http.StatusInternalServerError
+	expectedBody := []byte(`you shall not pass`)
+
+	assert.Equal(t, expectedCode, code)
+	assert.Equal(t, expectedBody, body)
+	assert.Equal(t, string(expectedBody), testingT.String())
 }
 
 func TestServer_Repeatability(t *testing.T) {
