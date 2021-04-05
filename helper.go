@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -96,6 +97,27 @@ func GetBody(r *http.Request) ([]byte, error) {
 	r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 	return body, err
+}
+
+// AssertHeaderContains asserts that the HTTP headers contains some specifics headers.
+func AssertHeaderContains(t assert.TestingT, headers, contains Header) bool {
+	if len(contains) == 0 {
+		return true
+	}
+
+	expectedHeaders := make(Header, len(contains))
+	actualHeaders := make(Header, len(contains))
+
+	for header := range contains {
+		headerKey := http.CanonicalHeaderKey(header)
+		expectedHeaders[headerKey] = contains[header]
+
+		if value, ok := headers[headerKey]; ok {
+			actualHeaders[headerKey] = value
+		}
+	}
+
+	return assert.Equal(t, expectedHeaders, actualHeaders)
 }
 
 // mergeHeaders merges a list of headers with some defaults. If a default header appears in the given headers, it
