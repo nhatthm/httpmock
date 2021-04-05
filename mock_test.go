@@ -55,6 +55,8 @@ func TestMock(t *testing.T) {
 			Return(`{"id":1,"foo":"bar"}`)
 	})(t)
 
+	defer s.Close()
+
 	code, _, body, _ := httpmock.DoRequest(t,
 		http.MethodPost,
 		s.URL()+"/create",

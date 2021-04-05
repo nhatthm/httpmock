@@ -274,6 +274,8 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 			Return(`{"foo":"bar"}`)
 	})
 
+	defer s.Close()
+
 	request := func(uri string) (int, map[string]string, []byte) {
 		code, headers, body, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
 
@@ -345,6 +347,8 @@ func TestServer_Repeatability(t *testing.T) {
 			Return(`hello world!`).
 			Twice()
 	})
+
+	defer s.Close()
 
 	request := func() (int, []byte) {
 		code, _, body, _ := request(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
@@ -420,6 +424,8 @@ func TestServer_Wait(t *testing.T) {
 			testingT := T()
 			s := httpmock.MockServer(testingT, tc.mockServer)
 
+			defer s.Close()
+
 			code, _, _, elapsed := request(t, s.URL(), http.MethodGet, "/", nil, nil, tc.expectedDelay)
 			expectedCode := http.StatusOK
 
@@ -443,6 +449,8 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 		s.ExpectGet("/path")
 		s.ExpectGet("/optional").Times(0)
 	})
+
+	defer s.Close()
 
 	request := func() int {
 		code, _, _, _ := request(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
