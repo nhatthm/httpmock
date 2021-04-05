@@ -479,6 +479,20 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)
 }
 
+func TestServer_ResetExpectations(t *testing.T) {
+	t.Parallel()
+
+	s := httpmock.MockServer(T(), func(s *httpmock.Server) {
+		s.ExpectGet("/").Times(3)
+	})
+
+	defer s.Close()
+
+	s.ResetExpectations()
+
+	assert.NoError(t, s.ExpectationsWereMet())
+}
+
 // nolint:thelper // It is called in DoRequestWithTimeout.
 func request(
 	t *testing.T,
