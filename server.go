@@ -218,3 +218,12 @@ func (s *Server) failResponsef(w http.ResponseWriter, format string, args ...int
 	_, err := w.Write([]byte(body))
 	require.NoError(s.test, err, "could not write response: %q", body)
 }
+
+// ResetExpectations resets all the expectations.
+func (s *Server) ResetExpectations() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ExpectedRequests = nil
+	s.Requests = nil
+}
