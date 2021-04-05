@@ -178,7 +178,7 @@ Error: expected request body: "{\"foo\":\"bar\"}", received: "{\"foo\":\"baz\"}"
 			)
 
 			assert.Equal(t, tc.expectedCode, code)
-			assertHeaders(t, tc.expectedHeaders, headers)
+			httpmock.AssertHeaderContains(t, headers, tc.expectedHeaders)
 			assert.Equal(t, tc.expectedBody, string(body))
 
 			if tc.expectedError {
@@ -291,7 +291,7 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 	code, headers, body := request("/text")
 
 	assert.Equal(t, expectedCode, code)
-	assertHeaders(t, expectedHeaders, headers)
+	httpmock.AssertHeaderContains(t, headers, expectedHeaders)
 	assert.Equal(t, expectedBody, body)
 	assert.Empty(t, testingT.String())
 
@@ -302,7 +302,7 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 	code, headers, body = request("/json")
 
 	assert.Equal(t, expectedCode, code)
-	assertHeaders(t, expectedHeaders, headers)
+	httpmock.AssertHeaderContains(t, headers, expectedHeaders)
 	assert.Equal(t, expectedBody, body)
 	assert.Empty(t, testingT.String())
 
@@ -507,27 +507,4 @@ func request(
 		headers, body,
 		waitTime+time.Second,
 	)
-}
-
-// nolint:unparam
-func assertHeaders(t *testing.T, expected, headers Header) bool {
-	t.Helper()
-
-	if len(expected) == 0 {
-		return true
-	}
-
-	expectedHeaders := make(Header, len(expected))
-	actualHeaders := make(Header, len(expected))
-
-	for header := range expected {
-		headerKey := http.CanonicalHeaderKey(header)
-		expectedHeaders[headerKey] = expected[header]
-
-		if value, ok := headers[headerKey]; ok {
-			actualHeaders[headerKey] = value
-		}
-	}
-
-	return assert.Equal(t, expectedHeaders, actualHeaders)
 }
