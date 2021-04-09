@@ -41,7 +41,7 @@ type Request struct {
 	// expectations. 0 means to always return the value.
 	Repeatability int
 
-	// Amount of times this call has been called
+	// Amount of times this request has been executed.
 	totalCalls int
 
 	// Holds a channel that will be used to block the Do until it either
@@ -269,7 +269,7 @@ func (r *Request) Handler(handler RequestHandler) *Request {
 	return r
 }
 
-// Once indicates that that the mock should only return the value once.
+// Once indicates that the mock should only return the value once.
 //
 //    Server.Expect(http.MethodGet, "/path").
 //    	Return("hello world!").
@@ -278,7 +278,7 @@ func (r *Request) Once() *Request {
 	return r.Times(1)
 }
 
-// Twice indicates that that the mock should only return the value twice.
+// Twice indicates that the mock should only return the value twice.
 //
 //    Server.Expect(http.MethodGet, "/path").
 //    	Return("hello world!").
@@ -287,7 +287,7 @@ func (r *Request) Twice() *Request {
 	return r.Times(2)
 }
 
-// Times indicates that that the mock should only return the indicated number
+// Times indicates that the mock should only return the indicated number
 // of times.
 //
 //    Server.Expect(http.MethodGet, "/path").
