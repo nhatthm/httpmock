@@ -1,12 +1,15 @@
 name: test
+
 on:
   push:
     branches:
       - master
   pull_request:
+
 env:
   GO111MODULE: "on"
   GO_LATEST_VERSION: "1.16.x"
+
 jobs:
   test:
     strategy:
@@ -20,8 +23,10 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
+
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Go cache
         uses: actions/cache@v2
         with:
@@ -34,10 +39,12 @@ jobs:
           key: ${{ runner.os }}-go-${{ matrix.go-version }}-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-${{ matrix.go-version }}-cache
+
       - name: Test
         id: test
         run: |
           make test
+
       - name: Upload code coverage
         if: matrix.go-version == env.GO_LATEST_VERSION
         uses: codecov/codecov-action@v1
