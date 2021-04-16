@@ -19,7 +19,7 @@ func newTestRequestWithBody(body string) *http.Request {
 	return httptest.NewRequest(http.MethodPost, "/path", strings.NewReader(body))
 }
 
-func TestSequentialRequestMatcher(t *testing.T) {
+func TestRequestMatcher(t *testing.T) {
 	t.Parallel()
 
 	requestWithWrongHeader := newTestRequest()
