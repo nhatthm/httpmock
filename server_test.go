@@ -446,14 +446,14 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 
 	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
 		s.ExpectGet("/").Times(3)
+		s.ExpectGet("/unlimited").UnlimitedTimes()
 		s.ExpectGet("/path")
-		s.ExpectGet("/optional").Times(0)
 	})
 
 	defer s.Close()
 
-	request := func() int {
-		code, _, _, _ := request(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
+	request := func(uri string) int {
+		code, _, _, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
 
 		return code
 	}
@@ -461,19 +461,58 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 	expectedCode := http.StatusOK
 
 	// 1st request is ok.
-	assert.Equal(t, expectedCode, request())
+	assert.Equal(t, expectedCode, request("/"))
 
 	expectedErr := `there are remaining expectations that were not met:
 - GET / (called: 1 time(s), remaining: 2 time(s))
+- GET /unlimited
 - GET /path
 `
 	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)
 
 	// 2nd request is ok.
-	assert.Equal(t, expectedCode, request())
+	assert.Equal(t, expectedCode, request("/"))
 
 	expectedErr = `there are remaining expectations that were not met:
 - GET / (called: 2 time(s), remaining: 1 time(s))
+- GET /unlimited
+- GET /path
+`
+	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)
+}
+
+func TestServer_ExpectationsWereMet_UnlimitedRequest(t *testing.T) {
+	t.Parallel()
+
+	testingT := T()
+
+	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+		s.ExpectGet("/").UnlimitedTimes()
+		s.ExpectGet("/path")
+	})
+
+	defer s.Close()
+
+	request := func(uri string) int {
+		code, _, _, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
+
+		return code
+	}
+
+	expectedCode := http.StatusOK
+
+	// 1st request is ok.
+	assert.Equal(t, expectedCode, request("/"))
+
+	expectedErr := `there are remaining expectations that were not met:
+- GET /path
+`
+	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)
+
+	// 2nd request is ok.
+	assert.Equal(t, expectedCode, request("/"))
+
+	expectedErr = `there are remaining expectations that were not met:
 - GET /path
 `
 	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)

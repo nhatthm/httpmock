@@ -117,9 +117,10 @@ Error: expected request body: "{\"value\": 1, \"diff\": \"<ignore-diff>\"}", rec
 			request:  newTestRequestWithBody(`{"value": 1, "diff": "foobar"}`),
 			expectations: []*httpmock.Request{
 				{
-					Method:      http.MethodPost,
-					RequestURI:  "/path",
-					RequestBody: []byte(`{"value": 1, "diff": "<ignore-diff>"}`),
+					Method:        http.MethodPost,
+					RequestURI:    "/path",
+					RequestBody:   []byte(`{"value": 1, "diff": "<ignore-diff>"}`),
+					Repeatability: 1,
 				},
 			},
 			expectedRequest: &httpmock.Request{
@@ -130,13 +131,15 @@ Error: expected request body: "{\"value\": 1, \"diff\": \"<ignore-diff>\"}", rec
 			expectedRequests: []*httpmock.Request{},
 		},
 		{
-			scenario: "no repeatability",
+			scenario: "unlimited repeatability",
 			request:  newTestRequest(),
 			expectations: []*httpmock.Request{
 				{Method: http.MethodGet, RequestURI: "/path"},
 			},
-			expectedRequest:  &httpmock.Request{Method: http.MethodGet, RequestURI: "/path"},
-			expectedRequests: []*httpmock.Request{},
+			expectedRequest: &httpmock.Request{Method: http.MethodGet, RequestURI: "/path"},
+			expectedRequests: []*httpmock.Request{
+				{Method: http.MethodGet, RequestURI: "/path"},
+			},
 		},
 		{
 			scenario: "repeatability is 1",

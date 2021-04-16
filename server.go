@@ -141,7 +141,7 @@ func (s *Server) ExpectationsWereMet() error {
 	sb.WriteString("there are remaining expectations that were not met:\n")
 
 	for _, expected := range s.ExpectedRequests {
-		if expected.Repeatability < 1 {
+		if expected.Repeatability < 1 && expected.totalCalls > 0 {
 			continue
 		}
 

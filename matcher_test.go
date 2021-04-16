@@ -92,13 +92,15 @@ Error: expected request body: "expected body", received: "body"
 `,
 		},
 		{
-			scenario: "no repeatability",
+			scenario: "unlimited repeatability",
 			request:  newTestRequest(),
 			expectations: []*Request{
 				{Method: http.MethodGet, RequestURI: "/path"},
 			},
-			expectedRequest:  &Request{Method: http.MethodGet, RequestURI: "/path"},
-			expectedRequests: []*Request{},
+			expectedRequest: &Request{Method: http.MethodGet, RequestURI: "/path"},
+			expectedRequests: []*Request{
+				{Method: http.MethodGet, RequestURI: "/path"},
+			},
 		},
 		{
 			scenario: "repeatability is 1",

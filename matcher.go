@@ -100,15 +100,7 @@ func SequentialRequestMatcher(options ...RequestMatcherOption) RequestMatcher {
 			}
 		}
 
-		if expected.Repeatability > 0 {
-			expected.Repeatability--
-
-			if expected.Repeatability > 0 {
-				return expected, expectedRequests, nil
-			}
-		}
-
-		return expected, expectedRequests[1:], nil
+		return expected, nextExpectations(expected, expectedRequests), nil
 	}
 }
 
@@ -167,4 +159,20 @@ func ExactBodyMatcher() BodyMatcher {
 	return func(_ TestingT, expected, body []byte) bool {
 		return assert.ObjectsAreEqual(expected, body)
 	}
+}
+
+func nextExpectations(expected *Request, expectedRequests []*Request) []*Request {
+	if expected.Repeatability == 0 {
+		return expectedRequests
+	}
+
+	if expected.Repeatability > 0 {
+		expected.Repeatability--
+
+		if expected.Repeatability > 0 {
+			return expectedRequests
+		}
+	}
+
+	return expectedRequests[1:]
 }

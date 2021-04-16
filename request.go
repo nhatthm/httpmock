@@ -287,6 +287,16 @@ func (r *Request) Twice() *Request {
 	return r.Times(2)
 }
 
+// UnlimitedTimes indicates that the mock should return the value at least once and there is no max limit in the number
+// of return.
+//
+//    Server.Expect(http.MethodGet, "/path").
+//    	Return("hello world!").
+//    	UnlimitedTimes()
+func (r *Request) UnlimitedTimes() *Request {
+	return r.Times(0)
+}
+
 // Times indicates that the mock should only return the indicated number
 // of times.
 //
