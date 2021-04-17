@@ -439,7 +439,7 @@ func TestServer_Wait(t *testing.T) {
 	}
 }
 
-func TestServer_ExpectationsWereMet(t *testing.T) {
+func TestServer_ExpectationsWereNotMet(t *testing.T) {
 	t.Parallel()
 
 	testingT := T()
@@ -481,7 +481,7 @@ func TestServer_ExpectationsWereMet(t *testing.T) {
 	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)
 }
 
-func TestServer_ExpectationsWereMet_UnlimitedRequest(t *testing.T) {
+func TestServer_ExpectationsWereNotMet_UnlimitedRequest(t *testing.T) {
 	t.Parallel()
 
 	testingT := T()
@@ -516,6 +516,29 @@ func TestServer_ExpectationsWereMet_UnlimitedRequest(t *testing.T) {
 - GET /path
 `
 	assert.EqualError(t, s.ExpectationsWereMet(), expectedErr)
+}
+
+func TestServer_ExpectationsWereMet_UnlimitedRequest(t *testing.T) {
+	t.Parallel()
+
+	testingT := T()
+
+	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+		s.ExpectGet("/").UnlimitedTimes()
+	})
+
+	defer s.Close()
+
+	request := func(uri string) int {
+		code, _, _, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
+
+		return code
+	}
+
+	expectedCode := http.StatusOK
+
+	assert.Equal(t, expectedCode, request("/"))
+	assert.NoError(t, s.ExpectationsWereMet())
 }
 
 func TestServer_ResetExpectations(t *testing.T) {

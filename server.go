@@ -136,7 +136,10 @@ func (s *Server) ExpectationsWereMet() error {
 		return nil
 	}
 
-	var sb strings.Builder
+	var (
+		sb    strings.Builder
+		count int
+	)
 
 	sb.WriteString("there are remaining expectations that were not met:\n")
 
@@ -154,6 +157,12 @@ func (s *Server) ExpectationsWereMet() error {
 			expected.totalCalls,
 			expected.Repeatability,
 		)
+
+		count++
+	}
+
+	if count == 0 {
+		return nil
 	}
 
 	// nolint:goerr113
