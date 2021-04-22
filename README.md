@@ -1,5 +1,6 @@
 # HTTP Mock for Golang
 
+[![GitHub Releases](https://img.shields.io/github/v/release/nhatthm/httpmock)](https://github.com/nhatthm/httpmock/releases/latest)
 [![Build Status](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml/badge.svg)](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml)
 [![codecov](https://codecov.io/gh/nhatthm/httpmock/branch/master/graph/badge.svg?token=eTdAgDE2vR)](https://codecov.io/gh/nhatthm/httpmock)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nhatthm/httpmock)](https://goreportcard.com/report/github.com/nhatthm/httpmock)
