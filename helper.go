@@ -136,12 +136,43 @@ func mergeHeaders(headers, defaultHeaders map[string]string) map[string]string {
 	return result
 }
 
-func formatRequest(w io.Writer, method, uri string, header Header, body []byte) {
-	formatRequestTimes(w, method, uri, header, body, 0, 0)
+func formatExpectedRequest(w io.Writer, method string, uri Matcher, header HeaderMatcher, body Matcher) {
+	formatExpectedRequestTimes(w, method, uri, header, body, 0, 0)
 }
 
-func formatRequestTimes(w io.Writer, method, uri string, header Header, body []byte, totalCalls, remainingCalls int) {
-	_, _ = fmt.Fprintf(w, "%s %s", method, uri)
+func formatExpectedRequestTimes(w io.Writer, method string, uri Matcher, header HeaderMatcher, body Matcher, totalCalls, remainingCalls int) {
+	expectedHeader := map[string]interface{}(nil)
+	if header != nil {
+		expectedHeader = make(map[string]interface{}, len(header))
+
+		for header, matcher := range header {
+			expectedHeader[header] = matcher
+		}
+	}
+
+	expectedBody := []byte(nil)
+	if body != nil {
+		expectedBody = []byte(body.Expected())
+	}
+
+	formatRequestTimes(w, method, uri.Expected(), expectedHeader, expectedBody, totalCalls, remainingCalls)
+}
+
+func formatHTTPRequest(w io.Writer, method, uri string, header http.Header, body []byte) {
+	expectedHeader := map[string]interface{}(nil)
+	if header != nil {
+		expectedHeader = make(map[string]interface{}, len(header))
+
+		for key := range header {
+			expectedHeader[key] = header.Get(key)
+		}
+	}
+
+	formatRequestTimes(w, method, uri, expectedHeader, body, 0, 0)
+}
+
+func formatRequestTimes(w io.Writer, method string, uri interface{}, header map[string]interface{}, body interface{}, totalCalls, remainingCalls int) {
+	_, _ = fmt.Fprintf(w, "%s %s", method, formatValueInline(uri))
 
 	if remainingCalls > 0 && (totalCalls != 0 || remainingCalls != 1) {
 		_, _ = fmt.Fprintf(w, " (called: %d time(s), remaining: %d time(s))", totalCalls, remainingCalls)
@@ -163,16 +194,71 @@ func formatRequestTimes(w io.Writer, method, uri string, header Header, body []b
 		sort.Strings(keys)
 
 		for _, key := range keys {
-			_, _ = fmt.Fprintf(w, "%s%s%s: %s\n", indent, indent, key, header[key])
+			_, _ = fmt.Fprintf(w, "%s%s%s: %s\n", indent, indent, key, formatValueInline(header[key]))
 		}
 	}
 
 	if body != nil {
-		bodyStr := string(body)
+		bodyStr := formatValue(body)
 
 		if bodyStr != "" {
-			_, _ = fmt.Fprintf(w, "%swith body:\n", indent)
-			_, _ = fmt.Fprintf(w, "%s%s%s\n", indent, indent, string(body))
+			_, _ = fmt.Fprintf(w, "%swith body%s\n", indent, formatType(body))
+			_, _ = fmt.Fprintf(w, "%s%s%s\n", indent, indent, bodyStr)
 		}
+	}
+}
+
+func formatValueInline(v interface{}) string {
+	if v == nil {
+		return "<nil>"
+	}
+
+	switch m := v.(type) {
+	case *ExactMatch,
+		[]byte,
+		string:
+		return formatValue(v)
+
+	case Matcher:
+		return fmt.Sprintf("%T(%q)", v, m.Expected())
+
+	default:
+		panic("unknown value type")
+	}
+}
+
+func formatType(v interface{}) string {
+	if v == nil {
+		return ""
+	}
+
+	switch v.(type) {
+	case *ExactMatch,
+		[]byte,
+		string:
+		return ""
+
+	default:
+		return fmt.Sprintf(" using %T", v)
+	}
+}
+
+func formatValue(v interface{}) string {
+	if v == nil {
+		return "<nil>"
+	}
+
+	switch m := v.(type) {
+	case Matcher:
+		return m.Expected()
+
+	case []byte:
+		return string(m)
+
+	case string:
+		return m
+
+	default:
+		panic("unknown value type")
 	}
 }

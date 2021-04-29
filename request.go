@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+// HeaderMatcher is a list of HTTP headers.
+type HeaderMatcher map[string]Matcher
+
 // Header is a list of HTTP headers.
 type Header map[string]string
 
@@ -21,11 +24,11 @@ type Request struct {
 	Method string
 	// RequestURI is the expected HTTP Request URI of the given request.
 	// The uri does not need to be exactly same but satisfies the URIMatcher.
-	RequestURI string
+	RequestURI Matcher
 	// RequestHeader is a list of expected headers of the given request.
-	RequestHeader Header
+	RequestHeader HeaderMatcher
 	// RequestBody is the expected body of the given request.
-	RequestBody []byte
+	RequestBody Matcher
 
 	// StatusCode is the response code when the request is handled.
 	StatusCode int
@@ -48,7 +51,7 @@ type Request struct {
 	waitTime time.Duration
 }
 
-func newRequest(parent *Server, method string, requestURI string) *Request {
+func newRequest(parent *Server, method string, requestURI Matcher) *Request {
 	return &Request{
 		parent:        parent,
 		Method:        method,
@@ -74,17 +77,17 @@ func (r *Request) unlock() {
 // WithHeader sets an expected header of the given request.
 //
 //    Server.Expect(http.MethodGet, "/path").
-//    	WithHeader("foo": "bar")
+//    	WithHeader("foo", "bar")
 //nolint:unparam
-func (r *Request) WithHeader(header, value string) *Request {
+func (r *Request) WithHeader(header string, value interface{}) *Request {
 	r.lock()
 	defer r.unlock()
 
 	if r.RequestHeader == nil {
-		r.RequestHeader = Header{}
+		r.RequestHeader = HeaderMatcher{}
 	}
 
-	r.RequestHeader[header] = value
+	r.RequestHeader[header] = ValueMatcher(value)
 
 	return r
 }
@@ -92,16 +95,16 @@ func (r *Request) WithHeader(header, value string) *Request {
 // WithHeaders sets a list of expected headers of the given request.
 //
 //    Server.Expect(http.MethodGet, "/path").
-//    	WithHeaders(httpmock.Header{"foo": "bar"})
-func (r *Request) WithHeaders(headers Header) *Request {
-	r.lock()
-	defer r.unlock()
-	r.RequestHeader = headers
+//    	WithHeaders(map[string]interface{}{"foo": "bar"})
+func (r *Request) WithHeaders(headers map[string]interface{}) *Request {
+	for header, value := range headers {
+		r.WithHeader(header, value)
+	}
 
 	return r
 }
 
-// WithBody sets the expected body of the given request.
+// WithBody sets the expected body of the given request. It could be []byte, string, fmt.Stringer, or a Matcher.
 //
 //    Server.Expect(http.MethodGet, "/path").
 //    	WithBody("hello world!")
@@ -109,19 +112,7 @@ func (r *Request) WithBody(body interface{}) *Request {
 	r.lock()
 	defer r.unlock()
 
-	switch body := body.(type) {
-	case []byte:
-		r.RequestBody = body
-
-	case string:
-		r.RequestBody = []byte(body)
-
-	case fmt.Stringer:
-		r.RequestBody = []byte(body.String())
-
-	default:
-		panic(fmt.Errorf("%w: unexpected request body data type: %T", ErrUnsupportedDataType, body))
-	}
+	r.RequestBody = ValueMatcher(body)
 
 	return r
 }
@@ -145,7 +136,7 @@ func (r *Request) WithBodyJSON(v interface{}) *Request {
 		panic(err)
 	}
 
-	return r.WithBody(body)
+	return r.WithBody(JSON(string(body)))
 }
 
 // ReturnCode sets the response code.

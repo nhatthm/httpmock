@@ -114,7 +114,7 @@ Error: header "Content-Type" with value "application/json" expected, "" received
 			expectedBody: `Expected: GET /
     with header:
         Content-Type: application/json
-    with body:
+    with body
         {"foo":"bar"}
 Actual: GET /
     with header:
@@ -122,7 +122,7 @@ Actual: GET /
         Content-Length: 13
         Content-Type: application/json
         User-Agent: Go-http-client/1.1
-    with body:
+    with body
         {"foo":"baz"}
 Error: expected request body: "{\"foo\":\"bar\"}", received: "{\"foo\":\"baz\"}"
 `,
@@ -250,7 +250,7 @@ func TestServer_ExpectAliases(t *testing.T) {
 			s := httpmock.MockServer(T(), tc.mockServer)
 
 			assert.Equal(t, tc.expectedMethod, s.ExpectedRequests[0].Method)
-			assert.Equal(t, "/", s.ExpectedRequests[0].RequestURI)
+			assert.Equal(t, httpmock.Exact("/"), s.ExpectedRequests[0].RequestURI)
 		})
 	}
 }
@@ -316,7 +316,6 @@ func TestServer_WithRequestMatcher(t *testing.T) {
 
 	s := httpmock.New(func(s *httpmock.Server) {
 		s.WithRequestMatcher(func(
-			_ httpmock.TestingT,
 			_ *http.Request,
 			_ []*httpmock.Request,
 		) (*httpmock.Request, []*httpmock.Request, error) {

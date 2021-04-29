@@ -12,27 +12,27 @@ import (
 func TestRequest_WithHeader(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{parent: &Server{}, RequestHeader: Header{}}
+	r := &Request{parent: &Server{}, RequestHeader: HeaderMatcher{}}
 	r.WithHeader("foo", "bar")
 
-	assert.Equal(t, Header{"foo": "bar"}, r.RequestHeader)
+	assert.Equal(t, HeaderMatcher{"foo": Exact("bar")}, r.RequestHeader)
 
 	r.WithHeader("john", "doe")
 
-	assert.Equal(t, Header{"foo": "bar", "john": "doe"}, r.RequestHeader)
+	assert.Equal(t, HeaderMatcher{"foo": Exact("bar"), "john": Exact("doe")}, r.RequestHeader)
 }
 
 func TestRequest_WithHeaders(t *testing.T) {
 	t.Parallel()
 
 	r := &Request{parent: &Server{}}
-	r.WithHeaders(Header{"foo": "bar"})
+	r.WithHeaders(map[string]interface{}{"foo": "bar"})
 
-	assert.Equal(t, Header{"foo": "bar"}, r.RequestHeader)
+	assert.Equal(t, HeaderMatcher{"foo": Exact("bar")}, r.RequestHeader)
 
 	r.WithHeader("john", "doe")
 
-	assert.Equal(t, Header{"foo": "bar", "john": "doe"}, r.RequestHeader)
+	assert.Equal(t, HeaderMatcher{"foo": Exact("bar"), "john": Exact("doe")}, r.RequestHeader)
 }
 
 func TestRequest_WithBody(t *testing.T) {
@@ -41,23 +41,23 @@ func TestRequest_WithBody(t *testing.T) {
 	testCases := []struct {
 		scenario     string
 		body         interface{}
-		expectedBody []byte
+		expectedBody Matcher
 		expectPanic  bool
 	}{
 		{
 			scenario:     "body is []bytes",
 			body:         []byte(`body`),
-			expectedBody: []byte(`body`),
+			expectedBody: Exact(`body`),
 		},
 		{
 			scenario:     "body is string",
 			body:         `body`,
-			expectedBody: []byte(`body`),
+			expectedBody: Exact(`body`),
 		},
 		{
 			scenario:     "body is fmt.Stringer",
 			body:         time.UTC,
-			expectedBody: []byte(`UTC`),
+			expectedBody: Exact(`UTC`),
 		},
 		{
 			scenario:    "body has unexpected data type",
@@ -90,7 +90,7 @@ func TestRequest_WithBodyf(t *testing.T) {
 	t.Parallel()
 
 	r := &Request{parent: &Server{}}
-	expectedBody := []byte(`hello john`)
+	expectedBody := Exact(`hello john`)
 
 	r.WithBodyf("hello %s", "john")
 
@@ -103,13 +103,13 @@ func TestRequest_WithBodyJSON(t *testing.T) {
 	testCases := []struct {
 		scenario     string
 		body         interface{}
-		expectedBody []byte
+		expectedBody Matcher
 		expectPanic  bool
 	}{
 		{
 			scenario:     "success",
 			body:         map[string]string{"foo": "bar"},
-			expectedBody: []byte(`{"foo":"bar"}`),
+			expectedBody: JSON(`{"foo":"bar"}`),
 		},
 		{
 			scenario:    "panic",

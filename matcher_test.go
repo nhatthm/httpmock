@@ -1,13 +1,22 @@
 package httpmock
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+type errReader struct{}
+
+func (r errReader) Read([]byte) (int, error) {
+	return 0, errors.New("read error")
+}
 
 func newTestRequest() *http.Request {
 	return httptest.NewRequest(http.MethodGet, "/path", nil)
@@ -15,6 +24,219 @@ func newTestRequest() *http.Request {
 
 func newTestRequestWithBody(body string) *http.Request {
 	return httptest.NewRequest(http.MethodGet, "/path", strings.NewReader(body))
+}
+
+func newTestRequestWithBodyError() *http.Request {
+	r := httptest.NewRequest(http.MethodGet, "/path", &errReader{})
+
+	return r
+}
+
+func TestExactMatch_Expected(t *testing.T) {
+	t.Parallel()
+
+	m := Exact("value")
+	expected := "value"
+
+	assert.Equal(t, expected, m.Expected())
+}
+
+func TestExactMatch_Match(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		actual   string
+		expected bool
+	}{
+		{
+			scenario: "match",
+			actual:   "value",
+			expected: true,
+		},
+		{
+			scenario: "no match",
+			actual:   "mismatch",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			m := Exact("value")
+
+			assert.Equal(t, tc.expected, m.Match(tc.actual))
+		})
+	}
+}
+
+func TestJSONMatch_Expected(t *testing.T) {
+	t.Parallel()
+
+	m := JSON("{}")
+	expected := "{}"
+
+	assert.Equal(t, expected, m.Expected())
+}
+
+func TestJSONMatch_Match(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		json     string
+		actual   string
+		expected bool
+	}{
+		{
+			scenario: "match",
+			json: `{
+	"username": "user"
+}`,
+			actual:   `{"username": "user"}`,
+			expected: true,
+		},
+		{
+			scenario: "match with <ignore-diff>",
+			json:     `{"username": "<ignore-diff>"}`,
+			actual:   `{"username": "user"}`,
+			expected: true,
+		},
+		{
+			scenario: "no match",
+			json:     "{}",
+			actual:   "[]",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			m := JSON(tc.json)
+
+			assert.Equal(t, tc.expected, m.Match(tc.actual))
+		})
+	}
+}
+
+func TestRegexMatch_Expected(t *testing.T) {
+	t.Parallel()
+
+	m := Regex(regexp.MustCompile(".*"))
+	expected := ".*"
+
+	assert.Equal(t, expected, m.Expected())
+}
+
+func TestRegexMatch_Match(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		matcher  *RegexMatch
+		actual   string
+		expected bool
+	}{
+		{
+			scenario: "match with regexp",
+			matcher:  Regex(regexp.MustCompile(".*")),
+			actual:   `hello`,
+			expected: true,
+		},
+		{
+			scenario: "match with regexp pattern",
+			matcher:  RegexPattern(".*"),
+			actual:   `hello`,
+			expected: true,
+		},
+		{
+			scenario: "no match",
+			matcher:  RegexPattern("^[0-9]+$"),
+			actual:   "mismatch",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.expected, tc.matcher.Match(tc.actual))
+		})
+	}
+}
+
+func TestCallbackMatch(t *testing.T) {
+	t.Parallel()
+
+	m := Match(
+		func() string {
+			return "expected"
+		},
+		func(string) bool {
+			return false
+		},
+	)
+
+	assert.Equal(t, "expected", m.Expected())
+	assert.False(t, m.Match("actual"))
+}
+
+func TestValueMatcher(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		value    interface{}
+		expected Matcher
+	}{
+		{
+			scenario: "matcher",
+			value:    Exact("expected"),
+			expected: Exact("expected"),
+		},
+		{
+			scenario: "[]byte",
+			value:    []byte("expected"),
+			expected: Exact("expected"),
+		},
+		{
+			scenario: "string",
+			value:    "expected",
+			expected: Exact("expected"),
+		},
+		{
+			scenario: "regexp",
+			value:    regexp.MustCompile(".*"),
+			expected: RegexPattern(".*"),
+		},
+		{
+			scenario: "fmt.Stringer",
+			value:    time.UTC,
+			expected: Exact("UTC"),
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.expected, ValueMatcher(tc.value))
+		})
+	}
+}
+
+func TestValueMatcher_Panic(t *testing.T) {
+	t.Parallel()
+
+	assert.Panics(t, func() {
+		ValueMatcher(42)
+	})
 }
 
 func TestSequentialRequestMatcher(t *testing.T) {
@@ -35,9 +257,9 @@ func TestSequentialRequestMatcher(t *testing.T) {
 			scenario: "method is not matched",
 			request:  httptest.NewRequest(http.MethodPost, "/", nil),
 			expectations: []*Request{
-				{Method: http.MethodGet},
+				{Method: http.MethodGet, RequestURI: Exact("/")},
 			},
-			expectedError: `Expected: GET 
+			expectedError: `Expected: GET /
 Actual: POST /
 Error: method "GET" expected, "POST" received
 `,
@@ -46,7 +268,7 @@ Error: method "GET" expected, "POST" received
 			scenario: "uri is not matched",
 			request:  newTestRequest(),
 			expectations: []*Request{
-				{Method: http.MethodGet, RequestURI: "/path2"},
+				{Method: http.MethodGet, RequestURI: Exact("/path2")},
 			},
 			expectedError: `Expected: GET /path2
 Actual: GET /path
@@ -59,8 +281,8 @@ Error: request uri "/path2" expected, "/path" received
 			expectations: []*Request{
 				{
 					Method:        http.MethodGet,
-					RequestURI:    "/path",
-					RequestHeader: map[string]string{"Authorization": "Bearer token"},
+					RequestURI:    Exact("/path"),
+					RequestHeader: HeaderMatcher{"Authorization": Exact("Bearer token")},
 				},
 			},
 			expectedError: `Expected: GET /path
@@ -73,20 +295,39 @@ Error: header "Authorization" with value "Bearer token" expected, "token" receiv
 `,
 		},
 		{
+			scenario: "could not read body",
+			request:  newTestRequestWithBodyError(),
+			expectations: []*Request{
+				{
+					Method:      http.MethodGet,
+					RequestURI:  Exact("/path"),
+					RequestBody: Exact("expected body"),
+				},
+			},
+			expectedError: `Expected: GET /path
+    with body
+        expected body
+Actual: GET /path
+    with body
+        could not read request body: read error
+Error: could not read request body: read error
+`,
+		},
+		{
 			scenario: "body is not matched",
 			request:  newTestRequestWithBody("body"),
 			expectations: []*Request{
 				{
 					Method:      http.MethodGet,
-					RequestURI:  "/path",
-					RequestBody: []byte("expected body"),
+					RequestURI:  Exact("/path"),
+					RequestBody: Exact("expected body"),
 				},
 			},
 			expectedError: `Expected: GET /path
-    with body:
+    with body
         expected body
 Actual: GET /path
-    with body:
+    with body
         body
 Error: expected request body: "expected body", received: "body"
 `,
@@ -95,31 +336,31 @@ Error: expected request body: "expected body", received: "body"
 			scenario: "unlimited repeatability",
 			request:  newTestRequest(),
 			expectations: []*Request{
-				{Method: http.MethodGet, RequestURI: "/path"},
+				{Method: http.MethodGet, RequestURI: Exact("/path")},
 			},
-			expectedRequest: &Request{Method: http.MethodGet, RequestURI: "/path"},
+			expectedRequest: &Request{Method: http.MethodGet, RequestURI: Exact("/path")},
 			expectedRequests: []*Request{
-				{Method: http.MethodGet, RequestURI: "/path"},
+				{Method: http.MethodGet, RequestURI: Exact("/path")},
 			},
 		},
 		{
 			scenario: "repeatability is 1",
 			request:  newTestRequest(),
 			expectations: []*Request{
-				{Method: http.MethodGet, RequestURI: "/path", Repeatability: 1},
+				{Method: http.MethodGet, RequestURI: Exact("/path"), Repeatability: 1},
 			},
-			expectedRequest:  &Request{Method: http.MethodGet, RequestURI: "/path"},
+			expectedRequest:  &Request{Method: http.MethodGet, RequestURI: Exact("/path")},
 			expectedRequests: []*Request{},
 		},
 		{
 			scenario: "repeatability is 2",
 			request:  newTestRequest(),
 			expectations: []*Request{
-				{Method: http.MethodGet, RequestURI: "/path", Repeatability: 2},
+				{Method: http.MethodGet, RequestURI: Exact("/path"), Repeatability: 2},
 			},
-			expectedRequest: &Request{Method: http.MethodGet, RequestURI: "/path", Repeatability: 1},
+			expectedRequest: &Request{Method: http.MethodGet, RequestURI: Exact("/path"), Repeatability: 1},
 			expectedRequests: []*Request{
-				{Method: http.MethodGet, RequestURI: "/path", Repeatability: 1},
+				{Method: http.MethodGet, RequestURI: Exact("/path"), Repeatability: 1},
 			},
 		},
 	}
@@ -129,7 +370,7 @@ Error: expected request body: "expected body", received: "body"
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			expected, expectedRequests, err := SequentialRequestMatcher()(t, tc.request, tc.expectations)
+			expected, expectedRequests, err := SequentialRequestMatcher()(tc.request, tc.expectations)
 
 			assert.Equal(t, tc.expectedRequest, expected)
 			assert.Equal(t, tc.expectedRequests, expectedRequests)
@@ -139,111 +380,6 @@ Error: expected request body: "expected body", received: "body"
 			} else {
 				assert.EqualError(t, err, tc.expectedError)
 			}
-		})
-	}
-}
-
-func TestExactURIMatcher(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		scenario    string
-		expectation string
-		uri         string
-		expected    bool
-	}{
-		{
-			scenario:    "equal",
-			expectation: "example.org/path/to/file.txt",
-			uri:         "example.org/path/to/file.txt",
-			expected:    true,
-		},
-		{
-			scenario:    "not equal",
-			expectation: "example.org/path/to/file.txt",
-			uri:         "example.org/path/to/file2.txt",
-			expected:    false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.scenario, func(t *testing.T) {
-			t.Parallel()
-
-			result := ExactURIMatcher()(t, tc.expectation, tc.uri)
-
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
-
-func TestExactHeaderMatcher(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		scenario    string
-		expectation string
-		header      string
-		expected    bool
-	}{
-		{
-			scenario:    "equal",
-			expectation: "Bearer token",
-			header:      "Bearer token",
-			expected:    true,
-		},
-		{
-			scenario:    "not equal",
-			expectation: "Bearer token",
-			header:      "Bearer token2",
-			expected:    false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.scenario, func(t *testing.T) {
-			t.Parallel()
-
-			result := ExactHeaderMatcher()(t, tc.expectation, tc.header)
-
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
-
-func TestExactBodyMatcher(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		scenario    string
-		expectation string
-		body        string
-		expected    bool
-	}{
-		{
-			scenario:    "equal",
-			expectation: "body",
-			body:        "body",
-			expected:    true,
-		},
-		{
-			scenario:    "not equal",
-			expectation: "body",
-			body:        "body 2",
-			expected:    false,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.scenario, func(t *testing.T) {
-			t.Parallel()
-
-			result := ExactBodyMatcher()(t, []byte(tc.expectation), []byte(tc.body))
-
-			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
