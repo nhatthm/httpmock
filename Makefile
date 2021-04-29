@@ -1,12 +1,12 @@
-VENDORDIR = vendor
+VENDOR_DIR = vendor
 
 GO ?= go
 GOLANGCI_LINT ?= golangci-lint
 
-.PHONY: $(VENDORDIR) lint test test-unit
+.PHONY: $(VENDOR_DIR) lint test test-unit
 
-$(VENDORDIR):
-	@mkdir -p $(VENDORDIR)
+$(VENDOR_DIR):
+	@mkdir -p $(VENDOR_DIR)
 	@$(GO) mod vendor
 
 lint:
