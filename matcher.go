@@ -96,6 +96,11 @@ func Exact(expected string) *ExactMatch {
 	return &ExactMatch{expected: expected}
 }
 
+// Exactf matches two objects by the formatted expectation.
+func Exactf(format string, args ...interface{}) *ExactMatch {
+	return &ExactMatch{expected: fmt.Sprintf(format, args...)}
+}
+
 // JSON matches two json objects with <ignore-diff> support.
 func JSON(expected string) *JSONMatch {
 	return &JSONMatch{expected: expected}

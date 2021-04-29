@@ -72,6 +72,43 @@ func TestExactMatch_Match(t *testing.T) {
 	}
 }
 
+func TestExactfMatch_Match(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		format   string
+		args     []interface{}
+		actual   string
+		expected bool
+	}{
+		{
+			scenario: "match",
+			format:   "Bearer %s",
+			args:     []interface{}{"token"},
+			actual:   "Bearer token",
+			expected: true,
+		},
+		{
+			scenario: "no match",
+			format:   "Bearer %s",
+			args:     []interface{}{"token"},
+			actual:   "Bearer unknown",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			m := Exactf(tc.format, tc.args...)
+
+			assert.Equal(t, tc.expected, m.Match(tc.actual))
+		})
+	}
+}
+
 func TestJSONMatch_Expected(t *testing.T) {
 	t.Parallel()
 
