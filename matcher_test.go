@@ -170,22 +170,6 @@ func TestRegexMatch_Match(t *testing.T) {
 	}
 }
 
-func TestCallbackMatch(t *testing.T) {
-	t.Parallel()
-
-	m := Match(
-		func() string {
-			return "expected"
-		},
-		func(string) bool {
-			return false
-		},
-	)
-
-	assert.Equal(t, "expected", m.Expected())
-	assert.False(t, m.Match("actual"))
-}
-
 func TestValueMatcher(t *testing.T) {
 	t.Parallel()
 
@@ -229,6 +213,18 @@ func TestValueMatcher(t *testing.T) {
 			assert.Equal(t, tc.expected, ValueMatcher(tc.value))
 		})
 	}
+}
+
+func TestValueMatcher_Match(t *testing.T) {
+	t.Parallel()
+
+	m := ValueMatcher(func() Matcher {
+		return Exact("expected")
+	})
+
+	assert.Equal(t, "expected", m.Expected())
+	assert.True(t, m.Match("expected"))
+	assert.False(t, m.Match("Mismatch"))
 }
 
 func TestValueMatcher_Panic(t *testing.T) {

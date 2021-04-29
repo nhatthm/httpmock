@@ -62,25 +62,32 @@ func (m *RegexMatch) Match(actual string) bool {
 
 // CallbackMatch matches by calling a function.
 type CallbackMatch struct {
-	expect func() string
-	match  func(actual string) bool
+	callback func() Matcher
+	upstream Matcher
+}
+
+func (m *CallbackMatch) matcher() Matcher {
+	if m.upstream == nil {
+		m.upstream = m.callback()
+	}
+
+	return m.upstream
 }
 
 // Expected returns the expectation.
 func (m *CallbackMatch) Expected() string {
-	return m.expect()
+	return m.matcher().Expected()
 }
 
 // Match determines if the actual is expected.
 func (m *CallbackMatch) Match(actual string) bool {
-	return m.match(actual)
+	return m.matcher().Match(actual)
 }
 
 // Match creates a callback matcher.
-func Match(expect func() string, match func(actual string) bool) Matcher {
+func Match(callback func() Matcher) Matcher {
 	return &CallbackMatch{
-		expect: expect,
-		match:  match,
+		callback: callback,
 	}
 }
 
@@ -109,6 +116,9 @@ func ValueMatcher(v interface{}) Matcher {
 	switch val := v.(type) {
 	case Matcher:
 		return val
+
+	case func() Matcher:
+		return Match(val)
 
 	case []byte:
 		return Exact(string(val))

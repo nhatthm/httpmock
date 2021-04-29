@@ -219,6 +219,9 @@ func formatValueInline(v interface{}) string {
 		string:
 		return formatValue(v)
 
+	case *CallbackMatch:
+		return formatValue(m.matcher())
+
 	case Matcher:
 		return fmt.Sprintf("%T(%q)", v, m.Expected())
 
@@ -232,11 +235,14 @@ func formatType(v interface{}) string {
 		return ""
 	}
 
-	switch v.(type) {
+	switch m := v.(type) {
 	case *ExactMatch,
 		[]byte,
 		string:
 		return ""
+
+	case *CallbackMatch:
+		return formatType(m.matcher())
 
 	default:
 		return fmt.Sprintf(" using %T", v)
@@ -249,6 +255,9 @@ func formatValue(v interface{}) string {
 	}
 
 	switch m := v.(type) {
+	case *CallbackMatch:
+		return formatValue(m.matcher())
+
 	case Matcher:
 		return m.Expected()
 

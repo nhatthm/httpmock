@@ -107,6 +107,13 @@ func TestFormatValueInline(t *testing.T) {
 			expected: "expected",
 		},
 		{
+			scenario: "Callback",
+			value: Match(func() Matcher {
+				return Exact("expected")
+			}),
+			expected: "expected",
+		},
+		{
 			scenario: "Matcher",
 			value:    JSON("{}"),
 			expected: "*httpmock.JSONMatch(\"{}\")",
@@ -159,6 +166,13 @@ func TestFormatType(t *testing.T) {
 			expected: "",
 		},
 		{
+			scenario: "Callback",
+			value: Match(func() Matcher {
+				return Exact("expected")
+			}),
+			expected: "",
+		},
+		{
 			scenario: "Matcher",
 			value:    JSON("{}"),
 			expected: " using *httpmock.JSONMatch",
@@ -195,6 +209,13 @@ func TestFormatValue(t *testing.T) {
 		{
 			scenario: "string",
 			value:    "expected",
+			expected: "expected",
+		},
+		{
+			scenario: "Callback",
+			value: Match(func() Matcher {
+				return Exact("expected")
+			}),
 			expected: "expected",
 		},
 		{
