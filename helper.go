@@ -120,6 +120,12 @@ func AssertHeaderContains(t assert.TestingT, headers, contains Header) bool {
 	return assert.Equal(t, expectedHeaders, actualHeaders)
 }
 
+func requireNoErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 // mergeHeaders merges a list of headers with some defaults. If a default header appears in the given headers, it
 // will not be merged, no matter what the value is.
 func mergeHeaders(headers, defaultHeaders map[string]string) map[string]string {

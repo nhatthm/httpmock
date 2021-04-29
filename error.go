@@ -27,9 +27,7 @@ func (e RequestMatcherError) formatExpected(w io.Writer) {
 
 func (e RequestMatcherError) formatActual(w io.Writer) {
 	body, err := GetBody(e.actual)
-	if err != nil {
-		panic(err)
-	}
+	requireNoErr(err)
 
 	formatHTTPRequest(w, e.actual.Method, e.actual.RequestURI, e.actual.Header, body)
 }

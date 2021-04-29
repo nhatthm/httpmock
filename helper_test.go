@@ -79,6 +79,22 @@ func TestGetBody_CloseError(t *testing.T) {
 	assert.Equal(t, expectedErr, err)
 }
 
+func TestRequireNoErr_NoPanic(t *testing.T) {
+	t.Parallel()
+
+	assert.NotPanics(t, func() {
+		requireNoErr(nil)
+	})
+}
+
+func TestRequireNoErr_Panic(t *testing.T) {
+	t.Parallel()
+
+	assert.Panics(t, func() {
+		requireNoErr(errors.New("error"))
+	})
+}
+
 func TestFormatValueInline(t *testing.T) {
 	t.Parallel()
 
