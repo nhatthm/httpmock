@@ -40,7 +40,7 @@ type Server struct {
 func NewServer(t TestingT) *Server {
 	s := Server{
 		test:         t,
-		matchRequest: DefaultRequestMatcher(),
+		matchRequest: SequentialRequestMatcher(),
 	}
 	s.server = httptest.NewServer(&s)
 
@@ -74,8 +74,8 @@ func (s *Server) Close() {
 // Expect adds a new expected request.
 //
 //    Server.Expect(http.MethodGet, "/path").
-func (s *Server) Expect(method, requestURI string) *Request {
-	c := newRequest(s, method, requestURI).Once()
+func (s *Server) Expect(method string, requestURI interface{}) *Request {
+	c := newRequest(s, method, ValueMatcher(requestURI)).Once()
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -149,7 +149,7 @@ func (s *Server) ExpectationsWereMet() error {
 		}
 
 		sb.WriteString("- ")
-		formatRequestTimes(&sb,
+		formatExpectedRequestTimes(&sb,
 			expected.Method,
 			expected.RequestURI,
 			expected.RequestHeader,
@@ -185,7 +185,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expected, expectedRequests, err := s.matchRequest(s.test, r, s.ExpectedRequests)
+	expected, expectedRequests, err := s.matchRequest(r, s.ExpectedRequests)
 	if err != nil {
 		s.failResponsef(w, err.Error())
 

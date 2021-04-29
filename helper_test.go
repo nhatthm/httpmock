@@ -1,4 +1,4 @@
-package httpmock_test
+package httpmock
 
 import (
 	"errors"
@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/nhatthm/httpmock"
 )
 
 type reader struct {
@@ -45,13 +43,13 @@ func TestGetBody(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader("body"))
 
 	// 1st read.
-	body, err := httpmock.GetBody(req)
+	body, err := GetBody(req)
 
 	assert.Equal(t, expectedBody, body)
 	assert.NoError(t, err)
 
 	// 2nd read.
-	body, err = httpmock.GetBody(req)
+	body, err = GetBody(req)
 
 	assert.Equal(t, expectedBody, body)
 	assert.NoError(t, err)
@@ -63,7 +61,7 @@ func TestGetBody_ReadError(t *testing.T) {
 	expectedErr := errors.New("read error")
 	req := httptest.NewRequest(http.MethodGet, "/", newReader("body", expectedErr, nil))
 
-	body, err := httpmock.GetBody(req)
+	body, err := GetBody(req)
 
 	assert.Nil(t, body)
 	assert.Equal(t, expectedErr, err)
@@ -75,8 +73,156 @@ func TestGetBody_CloseError(t *testing.T) {
 	expectedErr := errors.New("close error")
 	req := httptest.NewRequest(http.MethodGet, "/", newReader("body", nil, expectedErr))
 
-	body, err := httpmock.GetBody(req)
+	body, err := GetBody(req)
 
 	assert.Nil(t, body)
 	assert.Equal(t, expectedErr, err)
+}
+
+func TestFormatValueInline(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		value    interface{}
+		expected string
+	}{
+		{
+			scenario: "nil",
+			expected: "<nil>",
+		},
+		{
+			scenario: "ExactMatch",
+			value:    Exact("expected"),
+			expected: "expected",
+		},
+		{
+			scenario: "[]byte",
+			value:    []byte("expected"),
+			expected: "expected",
+		},
+		{
+			scenario: "string",
+			value:    "expected",
+			expected: "expected",
+		},
+		{
+			scenario: "Matcher",
+			value:    JSON("{}"),
+			expected: "*httpmock.JSONMatch(\"{}\")",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.expected, formatValueInline(tc.value))
+		})
+	}
+}
+
+func TestFormatValueInline_Panic(t *testing.T) {
+	t.Parallel()
+
+	assert.Panics(t, func() {
+		formatValueInline(42)
+	})
+}
+
+func TestFormatType(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		value    interface{}
+		expected string
+	}{
+		{
+			scenario: "nil",
+			expected: "",
+		},
+		{
+			scenario: "ExactMatch",
+			value:    Exact("expected"),
+			expected: "",
+		},
+		{
+			scenario: "[]byte",
+			value:    []byte("expected"),
+			expected: "",
+		},
+		{
+			scenario: "string",
+			value:    "expected",
+			expected: "",
+		},
+		{
+			scenario: "Matcher",
+			value:    JSON("{}"),
+			expected: " using *httpmock.JSONMatch",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.expected, formatType(tc.value))
+		})
+	}
+}
+
+func TestFormatValue(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario string
+		value    interface{}
+		expected string
+	}{
+		{
+			scenario: "nil",
+			expected: "<nil>",
+		},
+		{
+			scenario: "[]byte",
+			value:    []byte("expected"),
+			expected: "expected",
+		},
+		{
+			scenario: "string",
+			value:    "expected",
+			expected: "expected",
+		},
+		{
+			scenario: "ExactMatch",
+			value:    Exact("expected"),
+			expected: "expected",
+		},
+		{
+			scenario: "Matcher",
+			value:    JSON("{}"),
+			expected: "{}",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.expected, formatValue(tc.value))
+		})
+	}
+}
+
+func TestFormatValue_Panic(t *testing.T) {
+	t.Parallel()
+
+	assert.Panics(t, func() {
+		formatValue(42)
+	})
 }

@@ -100,7 +100,7 @@ func Test_ExpectationsWereNotMet(t *testing.T) {
 	//             	- POST /create
 	//             	    with header:
 	//             	        Authorization: Bearer token
-	//             	    with body:
+	//             	    with body
 	//             	        {"name":"John Doe"}
 }
 ```

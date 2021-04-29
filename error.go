@@ -22,26 +22,16 @@ type RequestMatcherError struct {
 }
 
 func (e RequestMatcherError) formatExpected(w io.Writer) {
-	formatRequest(w, e.expected.Method, e.expected.RequestURI, e.expected.RequestHeader, e.expected.RequestBody)
+	formatExpectedRequest(w, e.expected.Method, e.expected.RequestURI, e.expected.RequestHeader, e.expected.RequestBody)
 }
 
 func (e RequestMatcherError) formatActual(w io.Writer) {
-	header := Header(nil)
-
-	if len(e.actual.Header) > 0 {
-		header = Header{}
-
-		for key := range e.actual.Header {
-			header[key] = e.actual.Header.Get(key)
-		}
-	}
-
 	body, err := GetBody(e.actual)
 	if err != nil {
 		panic(err)
 	}
 
-	formatRequest(w, e.actual.Method, e.actual.RequestURI, header, body)
+	formatHTTPRequest(w, e.actual.Method, e.actual.RequestURI, e.actual.Header, body)
 }
 
 // Error satisfies the error interface.
