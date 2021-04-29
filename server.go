@@ -212,7 +212,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(expected.StatusCode)
 
-	body, err := expected.handle(r)
+	body, err := expected.Handle(r)
 	require.NoError(s.test, err)
 
 	_, err = w.Write(body)

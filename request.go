@@ -257,6 +257,11 @@ func (r *Request) WithHandler(handler func(r *http.Request) ([]byte, error)) *Re
 	return r
 }
 
+// Handle handles the HTTP request.
+func (r *Request) Handle(req *http.Request) ([]byte, error) {
+	return r.handle(req)
+}
+
 // Once indicates that the mock should only return the value once.
 //
 //    Server.Expect(http.MethodGet, "/path").
