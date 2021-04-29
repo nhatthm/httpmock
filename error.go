@@ -27,7 +27,9 @@ func (e RequestMatcherError) formatExpected(w io.Writer) {
 
 func (e RequestMatcherError) formatActual(w io.Writer) {
 	body, err := GetBody(e.actual)
-	requireNoErr(err)
+	if err != nil {
+		body = []byte(fmt.Sprintf("could not read request body: %s", err.Error()))
+	}
 
 	formatHTTPRequest(w, e.actual.Method, e.actual.RequestURI, e.actual.Header, body)
 }

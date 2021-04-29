@@ -1,6 +1,7 @@
 package httpmock
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -11,12 +12,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type errReader struct{}
+
+func (r errReader) Read([]byte) (int, error) {
+	return 0, errors.New("read error")
+}
+
 func newTestRequest() *http.Request {
 	return httptest.NewRequest(http.MethodGet, "/path", nil)
 }
 
 func newTestRequestWithBody(body string) *http.Request {
 	return httptest.NewRequest(http.MethodGet, "/path", strings.NewReader(body))
+}
+
+func newTestRequestWithBodyError() *http.Request {
+	r := httptest.NewRequest(http.MethodGet, "/path", &errReader{})
+
+	return r
 }
 
 func TestExactMatch_Expected(t *testing.T) {
@@ -279,6 +292,25 @@ Actual: GET /path
     with header:
         Authorization: token
 Error: header "Authorization" with value "Bearer token" expected, "token" received
+`,
+		},
+		{
+			scenario: "could not read body",
+			request:  newTestRequestWithBodyError(),
+			expectations: []*Request{
+				{
+					Method:      http.MethodGet,
+					RequestURI:  Exact("/path"),
+					RequestBody: Exact("expected body"),
+				},
+			},
+			expectedError: `Expected: GET /path
+    with body
+        expected body
+Actual: GET /path
+    with body
+        could not read request body: read error
+Error: could not read request body: read error
 `,
 		},
 		{

@@ -159,7 +159,7 @@ func SequentialRequestMatcher() RequestMatcher {
 		if expected.RequestBody != nil {
 			body, err := GetBody(r)
 			if err != nil {
-				return nil, nil, MatcherError(expected, r, err.Error())
+				return nil, nil, MatcherError(expected, r, "could not read request body: %s", err.Error())
 			}
 
 			if !expected.RequestBody.Match(string(body)) {
