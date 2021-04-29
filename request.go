@@ -13,9 +13,6 @@ import (
 // Header is a list of HTTP headers.
 type Header map[string]string
 
-// RequestHandler handles the request and returns a result or an error.
-type RequestHandler func(r *http.Request) ([]byte, error)
-
 // Request is an expectation.
 type Request struct {
 	parent *Server
@@ -34,8 +31,8 @@ type Request struct {
 	StatusCode int
 	// ResponseHeader is a list of response headers to be sent to client when the request is handled.
 	ResponseHeader Header
-	// Do handles the request and returns a result or an error.
-	Do RequestHandler
+
+	handle func(r *http.Request) ([]byte, error)
 
 	// The number of times to return the return arguments when setting
 	// expectations. 0 means to always return the value.
@@ -60,7 +57,7 @@ func newRequest(parent *Server, method string, requestURI string) *Request {
 		Repeatability: 0,
 		waitFor:       nil,
 
-		Do: func(r *http.Request) ([]byte, error) {
+		handle: func(r *http.Request) ([]byte, error) {
 			return nil, nil
 		},
 	}
@@ -214,7 +211,7 @@ func (r *Request) Return(v interface{}) *Request {
 		panic(fmt.Errorf("%w: unexpected response data type: %T", ErrUnsupportedDataType, body))
 	}
 
-	return r.Handler(func(_ *http.Request) ([]byte, error) {
+	return r.WithHandler(func(_ *http.Request) ([]byte, error) {
 		return body, nil
 	})
 }
@@ -232,7 +229,7 @@ func (r *Request) Returnf(format string, args ...interface{}) *Request {
 //    Server.Expect(http.MethodGet, "/path").
 //    	ReturnJSON(map[string]string{"foo": "bar"})
 func (r *Request) ReturnJSON(body interface{}) *Request {
-	return r.Handler(func(_ *http.Request) ([]byte, error) {
+	return r.WithHandler(func(_ *http.Request) ([]byte, error) {
 		return json.Marshal(body)
 	})
 }
@@ -249,22 +246,22 @@ func (r *Request) ReturnFile(filePath string) *Request {
 		panic(err)
 	}
 
-	return r.Handler(func(_ *http.Request) ([]byte, error) {
+	return r.WithHandler(func(_ *http.Request) ([]byte, error) {
 		// nolint:gosec // filePath is cleaned above.
 		return ioutil.ReadFile(filePath)
 	})
 }
 
-// Handler sets the handler to handle a given request.
+// WithHandler sets the handler to handle a given request.
 //
 //    Server.Expect(http.MethodGet, "/path").
-//		Handler(func(_ *http.Request) ([]byte, error) {
+//		WithHandler(func(_ *http.Request) ([]byte, error) {
 //			return []byte("hello world!"), nil
 //		})
-func (r *Request) Handler(handler RequestHandler) *Request {
+func (r *Request) WithHandler(handler func(r *http.Request) ([]byte, error)) *Request {
 	r.lock()
 	defer r.unlock()
-	r.Do = handler
+	r.handle = handler
 
 	return r
 }

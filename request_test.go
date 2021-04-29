@@ -219,7 +219,7 @@ func TestRequest_Return(t *testing.T) {
 				})
 			} else {
 				r.Return(tc.body)
-				result, err := r.Do(nil)
+				result, err := r.handle(nil)
 
 				assert.Equal(t, tc.expectedBody, result)
 				assert.NoError(t, err)
@@ -232,7 +232,7 @@ func TestRequest_Returnf(t *testing.T) {
 	t.Parallel()
 
 	r := &Request{parent: &Server{}}
-	result, err := r.Returnf("hello %s", "john").Do(nil)
+	result, err := r.Returnf("hello %s", "john").handle(nil)
 
 	expectedBody := []byte(`hello john`)
 
@@ -246,7 +246,7 @@ func TestRequest_ReturnJSON(t *testing.T) {
 	r := &Request{parent: &Server{}}
 	r.ReturnJSON(map[string]string{"foo": "bar"})
 
-	result, err := r.Do(nil)
+	result, err := r.handle(nil)
 
 	assert.Equal(t, `{"foo":"bar"}`, string(result))
 	assert.NoError(t, err)
@@ -264,7 +264,7 @@ func TestRequest_ReturnFile(t *testing.T) {
 
 	r.ReturnFile("resources/fixtures/response.txt")
 
-	result, err := r.Do(nil)
+	result, err := r.handle(nil)
 
 	assert.Equal(t, `hello world!`, strings.TrimSpace(string(result)))
 	assert.NoError(t, err)
