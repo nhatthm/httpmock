@@ -7,7 +7,8 @@
 [![GoDevDoc](https://img.shields.io/badge/dev-doc-00ADD8?logo=go)](https://pkg.go.dev/github.com/nhatthm/httpmock)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=PJZSGJN57TDJY)
 
-**httpmock** is a mock library implementing [httptest.Server](https://golang.org/pkg/net/http/httptest/#NewServer) to support HTTP behavioral tests.
+**httpmock** is a mock library implementing [httptest.Server](https://golang.org/pkg/net/http/httptest/#NewServer) to
+support HTTP behavioral tests.
 
 ## Prerequisites
 
@@ -22,32 +23,42 @@ go get github.com/nhatthm/httpmock
 ## Examples
 
 ```go
-func Test_Simple(t *testing.T) {
+package main
+
+import (
+	"testing"
+	"time"
+
+	"github.com/nhatthm/httpmock"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestSimple(t *testing.T) {
 	mockServer := httpmock.New(func(s *httpmock.Server) {
-		s.Expect(http.MethodGet, "/").
+		s.Expect(httpmock.MethodGet, "/").
 			Return("hello world!")
 	})
 
 	s := mockServer(t)
 
-	code, _, body, _ := httpmock.DoRequest(t, http.MethodGet, s.URL+"/", nil, nil)
+	code, _, body, _ := httpmock.DoRequest(t, httpmock.MethodGet, s.URL()+"/", nil, nil)
 
-	expectedCode := http.StatusOK
+	expectedCode := httpmock.StatusOK
 	expectedBody := []byte(`hello world!`)
 
 	assert.Equal(t, expectedCode, code)
 	assert.Equal(t, expectedBody, body)
-  
+
 	// Success
 }
 
-func Test_CustomResponse(t *testing.T) {
+func TestCustomResponse(t *testing.T) {
 	mockServer := httpmock.New(func(s *httpmock.Server) {
-		s.Expect(http.MethodPost, "/create").
+		s.Expect(httpmock.MethodPost, "/create").
 			WithHeader("Authorization", "Bearer token").
 			WithBody(`{"name":"John Doe"}`).
 			After(time.Second).
-			ReturnCode(http.StatusCreated)
+			ReturnCode(httpmock.StatusCreated).
 			ReturnJSON(map[string]interface{}{
 				"id":   1,
 				"name": "John Doe",
@@ -58,9 +69,9 @@ func Test_CustomResponse(t *testing.T) {
 
 	requestHeader := map[string]string{"Authorization": "Bearer token"}
 	requestBody := []byte(`{"name":"John Doe"}`)
-	code, _, body, _ := httpmock.DoRequestWithTimeout(t, http.MethodPost, s.URL()+"/create", requestHeader, requestBody, time.Second)
+	code, _, body, _ := httpmock.DoRequestWithTimeout(t, httpmock.MethodPost, s.URL()+"/create", requestHeader, requestBody, time.Second)
 
-	expectedCode := http.StatusCreated
+	expectedCode := httpmock.StatusCreated
 	expectedBody := []byte(`{"id":1,"name":"John Doe"}`)
 
 	assert.Equal(t, expectedCode, code)
@@ -69,12 +80,12 @@ func Test_CustomResponse(t *testing.T) {
 	// Success
 }
 
-func Test_ExpectationsWereNotMet(t *testing.T) {
+func TestExpectationsWereNotMet(t *testing.T) {
 	mockServer := httpmock.New(func(s *httpmock.Server) {
-		s.Expect(http.MethodGet, "/").
+		s.Expect(httpmock.MethodGet, "/").
 			Return("hello world!")
 
-		s.Expect(http.MethodPost, "/create").
+		s.Expect(httpmock.MethodPost, "/create").
 			WithHeader("Authorization", "Bearer token").
 			WithBody(`{"name":"John Doe"}`).
 			After(time.Second).
@@ -86,14 +97,14 @@ func Test_ExpectationsWereNotMet(t *testing.T) {
 
 	s := mockServer(t)
 
-	code, _, body, _ := httpmock.DoRequest(t, http.MethodGet, s.URL()+"/", nil, nil)
+	code, _, body, _ := httpmock.DoRequest(t, httpmock.MethodGet, s.URL()+"/", nil, nil)
 
-	expectedCode := http.StatusOK
+	expectedCode := httpmock.StatusOK
 	expectedBody := []byte(`hello world!`)
 
 	assert.Equal(t, expectedCode, code)
 	assert.Equal(t, expectedBody, body)
-  
+
 	// The test fails with
 	// Error:      	Received unexpected error:
 	//             	there are remaining expectations that were not met:

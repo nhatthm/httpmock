@@ -29,11 +29,13 @@ linters:
     - gomnd
     - ifshort
     - interfacer
+    - ireturn
     - lll
     - maligned
     - paralleltest
     - scopelint
     - testpackage
+    - varnamelen
     - wrapcheck
 
 issues:

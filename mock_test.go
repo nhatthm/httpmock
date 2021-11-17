@@ -34,16 +34,6 @@ func T() *TestingT {
 	}
 }
 
-func TWithCleanUp(upstream httpmock.TestingT) *TestingT {
-	t := T()
-
-	upstream.Cleanup(func() {
-		t.clean()
-	})
-
-	return t
-}
-
 func TestMock(t *testing.T) {
 	t.Parallel()
 

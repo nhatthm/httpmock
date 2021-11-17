@@ -1,83 +1,12 @@
-package httpmock
+package format
 
 import (
-	"errors"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/nhatthm/httpmock/matcher"
 )
-
-type reader struct {
-	upstream *strings.Reader
-	readErr  error
-	closeErr error
-}
-
-func (r *reader) Read(p []byte) (n int, err error) {
-	if r.readErr != nil {
-		return 0, r.readErr
-	}
-
-	return r.upstream.Read(p)
-}
-
-func (r *reader) Close() error {
-	return r.closeErr
-}
-
-func newReader(s string, readErr, closeErr error) *reader {
-	return &reader{
-		upstream: strings.NewReader(s),
-		readErr:  readErr,
-		closeErr: closeErr,
-	}
-}
-
-func TestGetBody(t *testing.T) {
-	t.Parallel()
-
-	expectedBody := []byte("body")
-	req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader("body"))
-
-	// 1st read.
-	body, err := GetBody(req)
-
-	assert.Equal(t, expectedBody, body)
-	assert.NoError(t, err)
-
-	// 2nd read.
-	body, err = GetBody(req)
-
-	assert.Equal(t, expectedBody, body)
-	assert.NoError(t, err)
-}
-
-func TestGetBody_ReadError(t *testing.T) {
-	t.Parallel()
-
-	expectedErr := errors.New("read error")
-	req := httptest.NewRequest(http.MethodGet, "/", newReader("body", expectedErr, nil))
-
-	body, err := GetBody(req)
-
-	assert.Nil(t, body)
-	assert.Equal(t, expectedErr, err)
-}
-
-func TestGetBody_CloseError(t *testing.T) {
-	t.Parallel()
-
-	expectedErr := errors.New("close error")
-	req := httptest.NewRequest(http.MethodGet, "/", newReader("body", nil, expectedErr))
-
-	body, err := GetBody(req)
-
-	assert.Nil(t, body)
-	assert.Equal(t, expectedErr, err)
-}
 
 func TestFormatValueInline(t *testing.T) {
 	t.Parallel()
@@ -93,7 +22,7 @@ func TestFormatValueInline(t *testing.T) {
 		},
 		{
 			scenario: "ExactMatch",
-			value:    Exact("expected"),
+			value:    matcher.Exact("expected"),
 			expected: "expected",
 		},
 		{
@@ -108,15 +37,20 @@ func TestFormatValueInline(t *testing.T) {
 		},
 		{
 			scenario: "Callback",
-			value: Match(func() Matcher {
-				return Exact("expected")
+			value: matcher.Match(func() matcher.Matcher {
+				return matcher.Exact("expected")
 			}),
 			expected: "expected",
 		},
 		{
+			scenario: "Body Matcher",
+			value:    matcher.Body(`expected`),
+			expected: "expected",
+		},
+		{
 			scenario: "Matcher",
-			value:    JSON("{}"),
-			expected: "*httpmock.JSONMatch(\"{}\")",
+			value:    matcher.JSON("{}"),
+			expected: "matcher.JSONMatcher(\"{}\")",
 		},
 	}
 
@@ -152,7 +86,7 @@ func TestFormatType(t *testing.T) {
 		},
 		{
 			scenario: "ExactMatch",
-			value:    Exact("expected"),
+			value:    matcher.Exact("expected"),
 			expected: "",
 		},
 		{
@@ -167,15 +101,25 @@ func TestFormatType(t *testing.T) {
 		},
 		{
 			scenario: "Callback",
-			value: Match(func() Matcher {
-				return Exact("expected")
+			value: matcher.Match(func() matcher.Matcher {
+				return matcher.Exact("expected")
 			}),
 			expected: "",
 		},
 		{
+			scenario: "Body Matcher is nil",
+			value:    (*matcher.BodyMatcher)(nil),
+			expected: "",
+		},
+		{
+			scenario: "Body Matcher is not nil",
+			value:    matcher.Body(matcher.JSON(`{}`)),
+			expected: " using matcher.JSONMatcher",
+		},
+		{
 			scenario: "Matcher",
-			value:    JSON("{}"),
-			expected: " using *httpmock.JSONMatch",
+			value:    matcher.JSON("{}"),
+			expected: " using matcher.JSONMatcher",
 		},
 	}
 
@@ -213,19 +157,39 @@ func TestFormatValue(t *testing.T) {
 		},
 		{
 			scenario: "Callback",
-			value: Match(func() Matcher {
-				return Exact("expected")
+			value: matcher.Match(func() matcher.Matcher {
+				return matcher.Exact("expected")
 			}),
 			expected: "expected",
 		},
 		{
 			scenario: "ExactMatch",
-			value:    Exact("expected"),
+			value:    matcher.Exact("expected"),
+			expected: "expected",
+		},
+		{
+			scenario: "Customer Matcher without expectation",
+			value:    matcher.Fn("", nil),
+			expected: "matches custom expectation",
+		},
+		{
+			scenario: "Customer Matcher with expectation",
+			value:    matcher.Fn("expected", nil),
+			expected: "expected",
+		},
+		{
+			scenario: "Body Matcher is nil",
+			value:    (*matcher.BodyMatcher)(nil),
+			expected: "",
+		},
+		{
+			scenario: "Body Matcher is not nil",
+			value:    matcher.Body("expected"),
 			expected: "expected",
 		},
 		{
 			scenario: "Matcher",
-			value:    JSON("{}"),
+			value:    matcher.JSON("{}"),
 			expected: "{}",
 		},
 	}

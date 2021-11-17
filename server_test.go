@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/nhatthm/httpmock"
+	"github.com/nhatthm/httpmock/mock/planner"
 )
 
 type (
@@ -124,7 +126,7 @@ Actual: GET /
         User-Agent: Go-http-client/1.1
     with body
         {"foo":"baz"}
-Error: expected request body: "{\"foo\":\"bar\"}", received: "{\"foo\":\"baz\"}"
+Error: expected request body: {"foo":"bar"}, received: {"foo":"baz"}
 `,
 			expectedError: true,
 		},
@@ -158,7 +160,7 @@ Error: expected request body: "{\"foo\":\"bar\"}", received: "{\"foo\":\"baz\"}"
 			t.Parallel()
 
 			serverT := T()
-			s := httpmock.MockServer(serverT, tc.mockServer)
+			s := httpmock.MockServer(tc.mockServer).WithTest(serverT)
 
 			defer s.Close()
 
@@ -170,7 +172,7 @@ Error: expected request body: "{\"foo\":\"bar\"}", received: "{\"foo\":\"baz\"}"
 				tc.uri = "/"
 			}
 
-			code, headers, body, _ := request(t, s.URL(),
+			code, headers, body, _ := doRequest(t, s.URL(),
 				tc.method, tc.uri,
 				tc.headers,
 				tc.body,
@@ -190,77 +192,14 @@ Error: expected request body: "{\"foo\":\"bar\"}", received: "{\"foo\":\"baz\"}"
 	}
 }
 
-func TestServer_ExpectAliases(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		scenario       string
-		mockServer     func(s *Server)
-		expectedMethod string
-	}{
-		{
-			scenario: "GET",
-			mockServer: func(s *Server) {
-				s.ExpectGet("/")
-			},
-			expectedMethod: http.MethodGet,
-		},
-		{
-			scenario: "HEAD",
-			mockServer: func(s *Server) {
-				s.ExpectHead("/")
-			},
-			expectedMethod: http.MethodHead,
-		},
-		{
-			scenario: "POST",
-			mockServer: func(s *Server) {
-				s.ExpectPost("/")
-			},
-			expectedMethod: http.MethodPost,
-		},
-		{
-			scenario: "PUT",
-			mockServer: func(s *Server) {
-				s.ExpectPut("/")
-			},
-			expectedMethod: http.MethodPut,
-		},
-		{
-			scenario: "PATCH",
-			mockServer: func(s *Server) {
-				s.ExpectPatch("/")
-			},
-			expectedMethod: http.MethodPatch,
-		},
-		{
-			scenario: "DELETE",
-			mockServer: func(s *Server) {
-				s.ExpectDelete("/")
-			},
-			expectedMethod: http.MethodDelete,
-		},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.scenario, func(t *testing.T) {
-			t.Parallel()
-
-			s := httpmock.MockServer(T(), tc.mockServer)
-
-			assert.Equal(t, tc.expectedMethod, s.ExpectedRequests[0].Method)
-			assert.Equal(t, httpmock.Exact("/"), s.ExpectedRequests[0].RequestURI)
-		})
-	}
-}
-
 func TestServer_WithDefaultHeaders(t *testing.T) {
 	t.Parallel()
 
 	testingT := T()
 
-	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+	s := httpmock.MockServer(func(s *httpmock.Server) {
+		s.WithTest(testingT)
+
 		s.WithDefaultResponseHeaders(httpmock.Header{
 			"Content-Type": "application/json",
 		})
@@ -277,7 +216,7 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 	defer s.Close()
 
 	request := func(uri string) (int, map[string]string, []byte) {
-		code, headers, body, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
+		code, headers, body, _ := doRequest(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
 
 		return code, headers, body
 	}
@@ -309,24 +248,28 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 	assert.NoError(t, s.ExpectationsWereMet())
 }
 
-func TestServer_WithRequestMatcher(t *testing.T) {
+func TestServer_WithPlanner(t *testing.T) {
 	t.Parallel()
 
-	testingT := TWithCleanUp(t)
+	testingT := T()
+
+	p := planner.Mock(func(p *planner.Planner) {
+		p.On("Expect", mock.Anything)
+
+		p.On("IsEmpty").Return(false)
+
+		p.On("Plan", mock.Anything).
+			Return(nil, errors.New("you shall not pass"))
+	})(t)
 
 	s := httpmock.New(func(s *httpmock.Server) {
-		s.WithRequestMatcher(func(
-			_ *http.Request,
-			_ []*httpmock.Request,
-		) (*httpmock.Request, []*httpmock.Request, error) {
-			return nil, nil, errors.New("you shall not pass")
-		})
+		s.WithPlanner(p)
 
 		s.ExpectGet("/").
 			Return(`hello world!`)
 	})(testingT)
 
-	code, _, body, _ := request(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
+	code, _, body, _ := doRequest(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
 
 	expectedCode := http.StatusInternalServerError
 	expectedBody := []byte(`you shall not pass`)
@@ -336,12 +279,29 @@ func TestServer_WithRequestMatcher(t *testing.T) {
 	assert.Equal(t, string(expectedBody), testingT.String())
 }
 
+func TestServer_WithPlanner_Panic(t *testing.T) {
+	t.Parallel()
+
+	expected := `could not change planner: planner is not empty`
+
+	assert.PanicsWithError(t, expected, func() {
+		s := httpmock.NewServer()
+
+		s.ExpectGet("/").
+			Return(`hello world!`)
+
+		s.WithPlanner(planner.NoMockPlanner(t))
+	})
+}
+
 func TestServer_Repeatability(t *testing.T) {
 	t.Parallel()
 
 	testingT := T()
 
-	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+	s := httpmock.MockServer(func(s *httpmock.Server) {
+		s.WithTest(testingT)
+
 		s.ExpectGet("/").
 			Return(`hello world!`).
 			Twice()
@@ -350,7 +310,7 @@ func TestServer_Repeatability(t *testing.T) {
 	defer s.Close()
 
 	request := func() (int, []byte) {
-		code, _, body, _ := request(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
+		code, _, body, _ := doRequest(t, s.URL(), http.MethodGet, "/", nil, nil, 0)
 
 		return code, body
 	}
@@ -421,11 +381,11 @@ func TestServer_Wait(t *testing.T) {
 			t.Parallel()
 
 			testingT := T()
-			s := httpmock.MockServer(testingT, tc.mockServer)
+			s := httpmock.MockServer(tc.mockServer).WithTest(testingT)
 
 			defer s.Close()
 
-			code, _, _, elapsed := request(t, s.URL(), http.MethodGet, "/", nil, nil, tc.expectedDelay)
+			code, _, _, elapsed := doRequest(t, s.URL(), http.MethodGet, "/", nil, nil, tc.expectedDelay)
 			expectedCode := http.StatusOK
 
 			assert.Equal(t, expectedCode, code)
@@ -443,7 +403,9 @@ func TestServer_ExpectationsWereNotMet(t *testing.T) {
 
 	testingT := T()
 
-	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+	s := httpmock.MockServer(func(s *httpmock.Server) {
+		s.WithTest(testingT)
+
 		s.ExpectGet("/").Times(3)
 		s.ExpectGet("/unlimited").UnlimitedTimes()
 		s.ExpectGet("/path")
@@ -452,7 +414,7 @@ func TestServer_ExpectationsWereNotMet(t *testing.T) {
 	defer s.Close()
 
 	request := func(uri string) int {
-		code, _, _, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
+		code, _, _, _ := doRequest(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
 
 		return code
 	}
@@ -485,7 +447,9 @@ func TestServer_ExpectationsWereNotMet_UnlimitedRequest(t *testing.T) {
 
 	testingT := T()
 
-	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+	s := httpmock.MockServer(func(s *httpmock.Server) {
+		s.WithTest(testingT)
+
 		s.ExpectGet("/").UnlimitedTimes()
 		s.ExpectGet("/path")
 	})
@@ -493,7 +457,7 @@ func TestServer_ExpectationsWereNotMet_UnlimitedRequest(t *testing.T) {
 	defer s.Close()
 
 	request := func(uri string) int {
-		code, _, _, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
+		code, _, _, _ := doRequest(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
 
 		return code
 	}
@@ -522,14 +486,16 @@ func TestServer_ExpectationsWereMet_UnlimitedRequest(t *testing.T) {
 
 	testingT := T()
 
-	s := httpmock.MockServer(testingT, func(s *httpmock.Server) {
+	s := httpmock.MockServer(func(s *httpmock.Server) {
+		s.WithTest(testingT)
+
 		s.ExpectGet("/").UnlimitedTimes()
 	})
 
 	defer s.Close()
 
 	request := func(uri string) int {
-		code, _, _, _ := request(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
+		code, _, _, _ := doRequest(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
 
 		return code
 	}
@@ -543,7 +509,7 @@ func TestServer_ExpectationsWereMet_UnlimitedRequest(t *testing.T) {
 func TestServer_ResetExpectations(t *testing.T) {
 	t.Parallel()
 
-	s := httpmock.MockServer(T(), func(s *httpmock.Server) {
+	s := httpmock.MockServer(func(s *httpmock.Server) {
 		s.ExpectGet("/").Times(3)
 	})
 
@@ -555,7 +521,7 @@ func TestServer_ResetExpectations(t *testing.T) {
 }
 
 // nolint:thelper // It is called in DoRequestWithTimeout.
-func request(
+func doRequest(
 	t *testing.T,
 	baseURL string,
 	method, uri string,
