@@ -11,6 +11,7 @@ import (
 
 	"github.com/nhatthm/httpmock"
 	"github.com/nhatthm/httpmock/mock/planner"
+	"github.com/nhatthm/httpmock/request"
 )
 
 type (
@@ -192,7 +193,56 @@ Error: expected request body: {"foo":"bar"}, received: {"foo":"baz"}
 	}
 }
 
-func TestServer_WithDefaultHeaders(t *testing.T) {
+func TestServer_WithDefaultRequestOptions(t *testing.T) {
+	t.Parallel()
+
+	s := httpmock.MockServer(func(s *httpmock.Server) {
+		s.WithDefaultRequestOptions(func(r *request.Request) {
+			r.WithHeader("Content-Type", "application/json")
+		})
+
+		s.ExpectGet("/json").
+			Return(`{"foo":"bar"}`)
+	})
+
+	doRequest := func(uri string, contentType string) (int, string) {
+		code, _, body, _ := doRequest(t,
+			s.URL(), http.MethodGet, uri,
+			map[string]string{"Content-Type": contentType},
+			nil,
+			0,
+		)
+
+		return code, string(body)
+	}
+
+	// 1st request is failed.
+	code, body := doRequest("/json", "text/plain")
+
+	expectedBody := `Expected: GET /json
+    with header:
+        Content-Type: application/json
+Actual: GET /json
+    with header:
+        Accept-Encoding: gzip
+        Content-Type: text/plain
+        User-Agent: Go-http-client/1.1
+Error: header "Content-Type" with value "application/json" expected, "text/plain" received
+`
+
+	assert.Equal(t, httpmock.StatusInternalServerError, code)
+	assert.Equal(t, expectedBody, body)
+
+	// 2nd request is success.
+	code, body = doRequest("/json", "application/json")
+
+	expectedBody = `{"foo":"bar"}`
+
+	assert.Equal(t, httpmock.StatusOK, code)
+	assert.Equal(t, expectedBody, body)
+}
+
+func TestServer_WithDefaultResponseHeaders(t *testing.T) {
 	t.Parallel()
 
 	testingT := T()
@@ -215,7 +265,7 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 
 	defer s.Close()
 
-	request := func(uri string) (int, map[string]string, []byte) {
+	doRequest := func(uri string) (int, map[string]string, []byte) {
 		code, headers, body, _ := doRequest(t, s.URL(), http.MethodGet, uri, nil, nil, 0)
 
 		return code, headers, body
@@ -227,7 +277,7 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 	expectedHeaders := map[string]string{"Content-Type": "text/plain", "X-ID": "1"}
 	expectedBody := []byte(`hello world!`)
 
-	code, headers, body := request("/text")
+	code, headers, body := doRequest("/text")
 
 	assert.Equal(t, expectedCode, code)
 	httpmock.AssertHeaderContains(t, headers, expectedHeaders)
@@ -238,7 +288,7 @@ func TestServer_WithDefaultHeaders(t *testing.T) {
 	expectedHeaders = map[string]string{"Content-Type": "application/json"}
 	expectedBody = []byte(`{"foo":"bar"}`)
 
-	code, headers, body = request("/json")
+	code, headers, body = doRequest("/json")
 
 	assert.Equal(t, expectedCode, code)
 	httpmock.AssertHeaderContains(t, headers, expectedHeaders)
