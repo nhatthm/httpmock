@@ -17,6 +17,12 @@ var Match = matcher.Match
 // JSON matches two json strings with <ignore-diff> support.
 var JSON = matcher.JSON
 
+// Regex matches two strings by using regex.
+var Regex = matcher.Regex
+
+// RegexPattern matches two strings by using regex.
+var RegexPattern = matcher.RegexPattern
+
 // Exact matches two objects by their exact values.
 var Exact = matcher.Exact
 

@@ -3,7 +3,6 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -225,7 +224,7 @@ func (r *Request) ReturnFile(filePath string) *Request {
 
 	return r.Run(func(*http.Request) ([]byte, error) {
 		// nolint:gosec // filePath is cleaned above.
-		return ioutil.ReadFile(filePath)
+		return os.ReadFile(filePath)
 	})
 }
 
