@@ -105,7 +105,7 @@ func (s *Server) Close() {
 
 // Expect adds a new expected request.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
+//	Server.Expect(httpmock.MethodGet, "/path").
 func (s *Server) Expect(method string, requestURI interface{}) *request.Request {
 	expect := request.NewRequest(&s.mu, method, requestURI).Once()
 
@@ -123,42 +123,42 @@ func (s *Server) Expect(method string, requestURI interface{}) *request.Request 
 
 // ExpectGet adds a new expected http.MethodGet request.
 //
-//   Server.ExpectGet("/path")
+//	Server.ExpectGet("/path")
 func (s *Server) ExpectGet(requestURI interface{}) *request.Request {
 	return s.Expect(MethodGet, requestURI)
 }
 
 // ExpectHead adds a new expected http.MethodHead request.
 //
-//   Server.ExpectHead("/path")
+//	Server.ExpectHead("/path")
 func (s *Server) ExpectHead(requestURI interface{}) *request.Request {
 	return s.Expect(MethodHead, requestURI)
 }
 
 // ExpectPost adds a new expected http.MethodPost request.
 //
-//   Server.ExpectPost("/path")
+//	Server.ExpectPost("/path")
 func (s *Server) ExpectPost(requestURI interface{}) *request.Request {
 	return s.Expect(MethodPost, requestURI)
 }
 
 // ExpectPut adds a new expected http.MethodPut request.
 //
-//   Server.ExpectPut("/path")
+//	Server.ExpectPut("/path")
 func (s *Server) ExpectPut(requestURI interface{}) *request.Request {
 	return s.Expect(MethodPut, requestURI)
 }
 
 // ExpectPatch adds a new expected http.MethodPatch request.
 //
-//   Server.ExpectPatch("/path")
+//	Server.ExpectPatch("/path")
 func (s *Server) ExpectPatch(requestURI interface{}) *request.Request {
 	return s.Expect(MethodPatch, requestURI)
 }
 
 // ExpectDelete adds a new expected http.MethodDelete request.
 //
-//   Server.ExpectDelete("/path")
+//	Server.ExpectDelete("/path")
 func (s *Server) ExpectDelete(requestURI interface{}) *request.Request {
 	return s.Expect(MethodDelete, requestURI)
 }

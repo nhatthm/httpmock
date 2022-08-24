@@ -3,7 +3,6 @@ package httpmock
 import (
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -29,7 +28,7 @@ func DoRequest(
 // DoRequestWithTimeout sends a simple HTTP Request for testing and returns the status code, response headers and
 // response body along with the total execution time.
 //
-//   code, headers, body, _ = DoRequestWithTimeout(t, http.MethodGet, "/", nil, nil, 0)
+//	code, headers, body, _ = DoRequestWithTimeout(t, http.MethodGet, "/", nil, nil, 0)
 func DoRequestWithTimeout(
 	tb testing.TB,
 	method, requestURI string,
@@ -71,7 +70,7 @@ func DoRequestWithTimeout(
 		}
 	}
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(tb, err, "could not read response body")
 
 	err = resp.Body.Close()

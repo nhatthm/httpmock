@@ -75,8 +75,9 @@ func (r *Request) unlock() {
 
 // WithHeader sets an expected header of the given request.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	WithHeader("foo", "bar")
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		WithHeader("foo", "bar")
+//
 //nolint:unparam
 func (r *Request) WithHeader(header string, value interface{}) *Request {
 	r.lock()
@@ -93,8 +94,8 @@ func (r *Request) WithHeader(header string, value interface{}) *Request {
 
 // WithHeaders sets a list of expected headers of the given request.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	WithHeaders(map[string]interface{}{"foo": "bar"})
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		WithHeaders(map[string]interface{}{"foo": "bar"})
 func (r *Request) WithHeaders(headers map[string]interface{}) *Request {
 	for header, value := range headers {
 		r.WithHeader(header, value)
@@ -105,8 +106,8 @@ func (r *Request) WithHeaders(headers map[string]interface{}) *Request {
 
 // WithBody sets the expected body of the given request. It could be []byte, string, fmt.Stringer, or a Matcher.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	WithBody("hello world!")
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		WithBody("hello world!")
 func (r *Request) WithBody(body interface{}) *Request {
 	r.lock()
 	defer r.unlock()
@@ -118,16 +119,17 @@ func (r *Request) WithBody(body interface{}) *Request {
 
 // WithBodyf formats according to a format specifier and use it as the expected body of the given request.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	WithBodyf("hello %s", "john)
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		WithBodyf("hello %s", "john)
 func (r *Request) WithBodyf(format string, args ...interface{}) *Request {
 	return r.WithBody(fmt.Sprintf(format, args...))
 }
 
 // WithBodyJSON marshals the object and use it as the expected body of the given request.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	WithBodyJSON(map[string]string{"foo": "bar"})
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		WithBodyJSON(map[string]string{"foo": "bar"})
+//
 // nolint:unparam
 func (r *Request) WithBodyJSON(v interface{}) *Request {
 	body, err := json.Marshal(v)
@@ -140,8 +142,8 @@ func (r *Request) WithBodyJSON(v interface{}) *Request {
 
 // ReturnCode sets the response code.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	ReturnCode(httpmock.StatusBadRequest)
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		ReturnCode(httpmock.StatusBadRequest)
 func (r *Request) ReturnCode(code int) *Request {
 	r.lock()
 	defer r.unlock()
@@ -153,8 +155,8 @@ func (r *Request) ReturnCode(code int) *Request {
 
 // ReturnHeader sets a response header.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	ReturnHeader("foo", "bar")
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		ReturnHeader("foo", "bar")
 func (r *Request) ReturnHeader(header, value string) *Request {
 	r.lock()
 	defer r.unlock()
@@ -170,8 +172,8 @@ func (r *Request) ReturnHeader(header, value string) *Request {
 
 // ReturnHeaders sets a list of response headers.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	ReturnHeaders(httpmock.Header{"foo": "bar"})
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		ReturnHeaders(httpmock.Header{"foo": "bar"})
 func (r *Request) ReturnHeaders(headers Header) *Request {
 	r.lock()
 	defer r.unlock()
@@ -183,8 +185,8 @@ func (r *Request) ReturnHeaders(headers Header) *Request {
 
 // Return sets the result to return to client.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	Return("hello world!")
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		Return("hello world!")
 func (r *Request) Return(v interface{}) *Request {
 	body := []byte(value.String(v))
 
@@ -195,16 +197,16 @@ func (r *Request) Return(v interface{}) *Request {
 
 // Returnf formats according to a format specifier and use it as the result to return to client.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	Returnf("hello %s", "john")
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		Returnf("hello %s", "john")
 func (r *Request) Returnf(format string, args ...interface{}) *Request {
 	return r.Return(fmt.Sprintf(format, args...))
 }
 
 // ReturnJSON marshals the object using json.Marshal and uses it as the result to return to client.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	ReturnJSON(map[string]string{"foo": "bar"})
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		ReturnJSON(map[string]string{"foo": "bar"})
 func (r *Request) ReturnJSON(body interface{}) *Request {
 	return r.Run(func(*http.Request) ([]byte, error) {
 		return json.Marshal(body)
@@ -213,8 +215,9 @@ func (r *Request) ReturnJSON(body interface{}) *Request {
 
 // ReturnFile reads the file using ioutil.ReadFile and uses it as the result to return to client.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//    	ReturnFile("resources/fixtures/response.txt")
+//	Server.Expect(httpmock.MethodGet, "/path").
+//		ReturnFile("resources/fixtures/response.txt")
+//
 // nolint:unparam
 func (r *Request) ReturnFile(filePath string) *Request {
 	filePath = filepath.Join(".", filepath.Clean(filePath))
@@ -230,10 +233,10 @@ func (r *Request) ReturnFile(filePath string) *Request {
 
 // Run sets the handler to handle a given request.
 //
-//    Server.Expect(httpmock.MethodGet, "/path").
-//		Run(func(*http.Request) ([]byte, error) {
-//			return []byte("hello world!"), nil
-//		})
+//	   Server.Expect(httpmock.MethodGet, "/path").
+//			Run(func(*http.Request) ([]byte, error) {
+//				return []byte("hello world!"), nil
+//			})
 func (r *Request) Run(handle func(r *http.Request) ([]byte, error)) *Request {
 	r.lock()
 	defer r.unlock()
@@ -272,18 +275,18 @@ func (r *Request) handle(w http.ResponseWriter, req *http.Request, defaultHeader
 
 // Once indicates that the mock should only return the value once.
 //
-//    Server.Expect(http.MethodGet, "/path").
-//    	Return("hello world!").
-//    	Once()
+//	Server.Expect(http.MethodGet, "/path").
+//		Return("hello world!").
+//		Once()
 func (r *Request) Once() *Request {
 	return r.Times(1)
 }
 
 // Twice indicates that the mock should only return the value twice.
 //
-//    Server.Expect(http.MethodGet, "/path").
-//    	Return("hello world!").
-//    	Twice()
+//	Server.Expect(http.MethodGet, "/path").
+//		Return("hello world!").
+//		Twice()
 func (r *Request) Twice() *Request {
 	return r.Times(2)
 }
@@ -291,18 +294,18 @@ func (r *Request) Twice() *Request {
 // UnlimitedTimes indicates that the mock should return the value at least once and there is no max limit in the number
 // of return.
 //
-//    Server.Expect(http.MethodGet, "/path").
-//    	Return("hello world!").
-//    	UnlimitedTimes()
+//	Server.Expect(http.MethodGet, "/path").
+//		Return("hello world!").
+//		UnlimitedTimes()
 func (r *Request) UnlimitedTimes() *Request {
 	return r.Times(0)
 }
 
 // Times indicates that the mock should only return the indicated number of times.
 //
-//    Server.Expect(http.MethodGet, "/path").
-//    	Return("hello world!").
-//    	Times(5)
+//	Server.Expect(http.MethodGet, "/path").
+//		Return("hello world!").
+//		Times(5)
 func (r *Request) Times(i int) *Request {
 	r.lock()
 	defer r.unlock()
@@ -314,9 +317,10 @@ func (r *Request) Times(i int) *Request {
 // WaitUntil sets the channel that will block the mocked return until its closed
 // or a message is received.
 //
-//    Server.Expect(http.MethodGet, "/path").
-//    	WaitUntil(time.After(time.Second)).
-//    	Return("hello world!")
+//	Server.Expect(http.MethodGet, "/path").
+//		WaitUntil(time.After(time.Second)).
+//		Return("hello world!")
+//
 // nolint: unparam
 func (r *Request) WaitUntil(w <-chan time.Time) *Request {
 	r.lock()
@@ -328,9 +332,10 @@ func (r *Request) WaitUntil(w <-chan time.Time) *Request {
 
 // After sets how long to block until the call returns.
 //
-//    Server.Expect(http.MethodGet, "/path").
-//    	After(time.Second).
-//    	Return("hello world!")
+//	Server.Expect(http.MethodGet, "/path").
+//		After(time.Second).
+//		Return("hello world!")
+//
 // nolint: unparam
 func (r *Request) After(d time.Duration) *Request {
 	r.lock()

@@ -3,7 +3,7 @@ package matcher
 import (
 	"net/http"
 
-	"github.com/nhatthm/go-matcher"
+	"go.nhat.io/matcher/v2"
 
 	"github.com/nhatthm/httpmock/value"
 )
