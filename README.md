@@ -1,3 +1,5 @@
+> ⚠️ From `v0.9.0`, the project will be rebranded to `go.nhat.io/httpmock`. `v.8.x` is the last version with `github.com/nhatthm/httpmock`.
+
 # HTTP Mock for Golang
 
 [![GitHub Releases](https://img.shields.io/github/v/release/nhatthm/httpmock)](https://github.com/nhatthm/httpmock/releases/latest)
@@ -32,7 +34,7 @@ support HTTP behavioral tests.
 
 ## Prerequisites
 
-- `Go >= 1.16`
+- `Go >= 1.17`
 
 [<sub><sup>[table of contents]</sup></sub>](#table-of-contents)
 
@@ -133,18 +135,18 @@ Further reading:
 
 ## Match a value
 
-`httpmock` is using [`nhatthm/go-matcher`](https://github.com/nhatthm/go-matcher) for matching values and that
+`httpmock` is using [`go.nhat.io/matcher`](https://go.nhat.io/matcher/v2) for matching values and that
 makes `httpmock` more powerful and convenient than ever. When writing expectations for the header or the payload, you
 can use any kind of matchers for your needs.
 
 For example, the `Request.WithHeader(header string, value interface{})` means you expect a header that matches a value,
 you can put any of these into the `value`:
 
-| Type | Explanation | Example |
-|:---: |:--- |:--- |
-| `string`<br/>`[]byte` | Match the exact string, case-sensitive | `.WithHeader("locale", "en-US")` |
-| `*regexp.Regexp` | Match using `regexp.Regex.MatchString` | `.WithHeader("locale", regexp.MustCompile("^en-"))` |
-| `matcher.RegexPattern` |  Match using `regexp.Regex.MatchString` | `.WithHeader("locale", matcher.RegexPattern("^en-"))` |
+|          Type          | Explanation                            | Example                                               |
+|:----------------------:|:---------------------------------------|:------------------------------------------------------|
+| `string`<br/>`[]byte`  | Match the exact string, case-sensitive | `.WithHeader("locale", "en-US")`                      |
+|    `*regexp.Regexp`    | Match using `regexp.Regex.MatchString` | `.WithHeader("locale", regexp.MustCompile("^en-"))`   |
+| `matcher.RegexPattern` | Match using `regexp.Regex.MatchString` | `.WithHeader("locale", matcher.RegexPattern("^en-"))` |
 
 [<sub><sup>[table of contents]</sup></sub>](#table-of-contents)
 
@@ -153,12 +155,12 @@ you can put any of these into the `value`:
 `matcher.Exact` matches a value by
 using [`testify/assert.ObjectsAreEqual()`](https://github.com/stretchr/testify/assert).
 
-| Matcher | Input | Result |
-|:---: |:---: |:---: |
-| `matcher.Exact("en-US")` | `"en-US"` | `true` |
-| `matcher.Exact("en-US")` | `"en-us"` | `false` |
-| `matcher.Exact([]byte("en-US))` | `[]byte("en-US")` | `true` |
-| `matcher.Exact([]byte("en-US))` | `"en-US"` | `false` |
+|             Matcher             |       Input       | Result  |
+|:-------------------------------:|:-----------------:|:-------:|
+|    `matcher.Exact("en-US")`     |     `"en-US"`     | `true`  |
+|    `matcher.Exact("en-US")`     |     `"en-us"`     | `false` |
+| `matcher.Exact([]byte("en-US))` | `[]byte("en-US")` | `true`  |
+| `matcher.Exact([]byte("en-US))` |     `"en-US"`     | `false` |
 
 [<sub><sup>[table of contents]</sup></sub>](#table-of-contents)
 
@@ -387,13 +389,13 @@ func TestSimple(t *testing.T) {
 
 There are several ways to create a response for the request
 
-| Method | Explanation | Example |
-| :--- | :--- | :--- |
-| `Return(v string,bytes,fmt.Stringer)` | Nothing fancy, the response is the given string | `Return("hello world")` |
-| `Returnf(format string, args ...interface{})` | Same as `Return()`, but with support for formatting using `fmt.Sprintf()` | `Returnf("hello %s", "world")` |
-| `ReturnJSON(v interface{})` | The response is the result of `json.Marshal(v)` | `ReturnJSON(map[string]string{"name": "john"})` |
-| `ReturnFile(path string)` | The response is the content of given file, read by `io.ReadFile()` | `ReturnFile("resources/fixtures/result.json")` |
-| `Run(func(r *http.Request) ([]byte, error))` | Custom Logic | [See the example](https://github.com/nhatthm/httpmock/blob/master/example_test.go#L44) |
+| Method                                        | Explanation                                                               | Example                                                                                |
+|:----------------------------------------------|:--------------------------------------------------------------------------|:---------------------------------------------------------------------------------------|
+| `Return(v string,bytes,fmt.Stringer)`         | Nothing fancy, the response is the given string                           | `Return("hello world")`                                                                |
+| `Returnf(format string, args ...interface{})` | Same as `Return()`, but with support for formatting using `fmt.Sprintf()` | `Returnf("hello %s", "world")`                                                         |
+| `ReturnJSON(v interface{})`                   | The response is the result of `json.Marshal(v)`                           | `ReturnJSON(map[string]string{"name": "john"})`                                        |
+| `ReturnFile(path string)`                     | The response is the content of given file, read by `io.ReadFile()`        | `ReturnFile("resources/fixtures/result.json")`                                         |
+| `Run(func(r *http.Request) ([]byte, error))`  | Custom Logic                                                              | [See the example](https://github.com/nhatthm/httpmock/blob/master/example_test.go#L44) |
 
 For example:
 

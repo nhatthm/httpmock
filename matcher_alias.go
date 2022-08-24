@@ -1,6 +1,6 @@
 package httpmock
 
-import "github.com/nhatthm/go-matcher"
+import "go.nhat.io/matcher/v2"
 
 // Match returns a matcher according to its type.
 var Match = matcher.Match

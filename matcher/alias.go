@@ -1,6 +1,8 @@
 package matcher
 
-import "github.com/nhatthm/go-matcher"
+import (
+	"go.nhat.io/matcher/v2"
+)
 
 // Matcher determines if the actual matches the expectation.
 type Matcher = matcher.Matcher
