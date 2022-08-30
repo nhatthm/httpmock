@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/matcher"
-	"github.com/nhatthm/httpmock/mock/http"
+	"go.nhat.io/httpmock/matcher"
+	"go.nhat.io/httpmock/mock/http"
 )
 
 func TestBodyMatcher_Match(t *testing.T) {

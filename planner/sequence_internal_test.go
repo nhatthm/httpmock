@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/request"
 )
 
 func TestNextExpectations(t *testing.T) {

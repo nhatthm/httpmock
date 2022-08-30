@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nhatthm/httpmock/matcher"
-	"github.com/nhatthm/httpmock/must"
-	"github.com/nhatthm/httpmock/value"
+	"go.nhat.io/httpmock/matcher"
+	"go.nhat.io/httpmock/must"
+	"go.nhat.io/httpmock/value"
 )
 
 // Request is an expectation.

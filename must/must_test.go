@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/must"
+	"go.nhat.io/httpmock/must"
 )
 
 func TestNotFail(t *testing.T) {

@@ -9,10 +9,10 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	"github.com/nhatthm/httpmock"
-	"github.com/nhatthm/httpmock/matcher"
-	plannerMock "github.com/nhatthm/httpmock/mock/planner"
-	"github.com/nhatthm/httpmock/must"
+	"go.nhat.io/httpmock"
+	"go.nhat.io/httpmock/matcher"
+	plannermock "go.nhat.io/httpmock/mock/planner"
+	"go.nhat.io/httpmock/must"
 )
 
 func ExampleMockServer_simple() {
@@ -93,7 +93,7 @@ func ExampleMockServer_expectationsWereNotMet() {
 
 func ExampleMockServer_alwaysFailPlanner() {
 	srv := httpmock.MockServer(func(s *httpmock.Server) {
-		p := &plannerMock.Planner{}
+		p := &plannermock.Planner{}
 
 		p.On("IsEmpty").Return(false)
 		p.On("Expect", mock.Anything)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/request"
 )
 
 func TestServer_ExpectAliases(t *testing.T) {

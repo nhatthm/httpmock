@@ -3,7 +3,7 @@ package planner
 import (
 	"net/http"
 
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/request"
 )
 
 // Planner or Request Execution Planner is in charge of selecting the right expectation for a given request.

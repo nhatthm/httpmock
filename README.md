@@ -5,8 +5,8 @@
 [![GitHub Releases](https://img.shields.io/github/v/release/nhatthm/httpmock)](https://github.com/nhatthm/httpmock/releases/latest)
 [![Build Status](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml/badge.svg)](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml)
 [![codecov](https://codecov.io/gh/nhatthm/httpmock/branch/master/graph/badge.svg?token=eTdAgDE2vR)](https://codecov.io/gh/nhatthm/httpmock)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nhatthm/httpmock)](https://goreportcard.com/report/github.com/nhatthm/httpmock)
-[![GoDevDoc](https://img.shields.io/badge/dev-doc-00ADD8?logo=go)](https://pkg.go.dev/github.com/nhatthm/httpmock)
+[![Go Report Card](https://goreportcard.com/badge/go.nhat.io/httpmock)](https://goreportcard.com/report/go.nhat.io/httpmock)
+[![GoDevDoc](https://img.shields.io/badge/dev-doc-00ADD8?logo=go)](https://pkg.go.dev/go.nhat.io/httpmock)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=PJZSGJN57TDJY)
 
 **httpmock** is a mock library implementing [httptest.Server](https://golang.org/pkg/net/http/httptest/#NewServer) to
@@ -41,7 +41,7 @@ support HTTP behavioral tests.
 ## Install
 
 ```bash
-go get github.com/nhatthm/httpmock
+go get go.nhat.io/httpmock
 ```
 
 [<sub><sup>[table of contents]</sup></sub>](#table-of-contents)
@@ -70,7 +70,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -94,7 +94,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -221,7 +221,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -255,7 +255,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -289,7 +289,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -310,7 +310,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -337,7 +337,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -369,7 +369,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -405,7 +405,7 @@ package main
 import (
 	"testing"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {
@@ -422,7 +422,7 @@ func TestSimple(t *testing.T) {
 
 ## Execution Plan
 
-The mocked HTTP server is created with the `github.com/nhatthm/httpmock/planner.Sequence()` by default, and it matches
+The mocked HTTP server is created with the `go.nhat.io/httpmock/planner.Sequence()` by default, and it matches
 incoming requests sequentially. You can easily change this behavior to match your application execution by implementing
 the `planner.Planner` interface.
 
@@ -432,7 +432,7 @@ package planner
 import (
 	"net/http"
 
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/request"
 )
 
 type Planner interface {
@@ -467,8 +467,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nhatthm/httpmock"
 	"github.com/stretchr/testify/assert"
+	"go.nhat.io/httpmock"
 )
 
 func TestSimple(t *testing.T) {

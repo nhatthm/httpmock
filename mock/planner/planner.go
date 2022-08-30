@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	tMock "github.com/stretchr/testify/mock"
 
-	"github.com/nhatthm/httpmock/planner"
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/planner"
+	"go.nhat.io/httpmock/request"
 )
 
 // Mocker is Planner mocker.

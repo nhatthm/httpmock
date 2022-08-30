@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nhatthm/httpmock/test"
+	"go.nhat.io/httpmock/test"
 )
 
 // DoRequest calls DoRequestWithTimeout with 1 second timeout.

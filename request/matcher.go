@@ -3,8 +3,8 @@ package request
 import (
 	"regexp"
 
-	"github.com/nhatthm/httpmock/matcher"
-	"github.com/nhatthm/httpmock/value"
+	"go.nhat.io/httpmock/matcher"
+	"go.nhat.io/httpmock/value"
 )
 
 func matchBody(v interface{}) *matcher.BodyMatcher {

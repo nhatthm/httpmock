@@ -1,4 +1,4 @@
-module github.com/nhatthm/httpmock
+module go.nhat.io/httpmock
 
 go 1.17
 

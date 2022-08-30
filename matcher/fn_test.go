@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/matcher"
+	"go.nhat.io/httpmock/matcher"
 )
 
 func TestFn(t *testing.T) {

@@ -3,7 +3,7 @@ package httpmock
 import (
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/test"
+	"go.nhat.io/httpmock/test"
 )
 
 // Mocker is a function that applies expectations to the mocked server.

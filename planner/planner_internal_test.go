@@ -1,7 +1,7 @@
 package planner
 
 import (
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/request"
 )
 
 func newExpectWithTimes(i int) *request.Request {
