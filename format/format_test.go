@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/format"
-	"github.com/nhatthm/httpmock/matcher"
+	"go.nhat.io/httpmock/format"
+	"go.nhat.io/httpmock/matcher"
 )
 
 func TestExpectedRequest(t *testing.T) {

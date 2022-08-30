@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock/mock/http"
-	"github.com/nhatthm/httpmock/value"
+	"go.nhat.io/httpmock/mock/http"
+	"go.nhat.io/httpmock/value"
 )
 
 func TestString_Success(t *testing.T) {

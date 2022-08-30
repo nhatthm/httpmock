@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/nhatthm/httpmock"
-	"github.com/nhatthm/httpmock/mock/planner"
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock"
+	"go.nhat.io/httpmock/mock/planner"
+	"go.nhat.io/httpmock/request"
 )
 
 type (

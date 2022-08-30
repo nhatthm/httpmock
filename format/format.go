@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/nhatthm/httpmock/matcher"
+	"go.nhat.io/httpmock/matcher"
 )
 
 const indent = "    "

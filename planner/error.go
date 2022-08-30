@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nhatthm/httpmock/format"
-	"github.com/nhatthm/httpmock/request"
-	"github.com/nhatthm/httpmock/value"
+	"go.nhat.io/httpmock/format"
+	"go.nhat.io/httpmock/request"
+	"go.nhat.io/httpmock/value"
 )
 
 // Error represents an error that occurs while matching a request.

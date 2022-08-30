@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/nhatthm/httpmock"
+	"go.nhat.io/httpmock"
 )
 
 type TestingT struct {

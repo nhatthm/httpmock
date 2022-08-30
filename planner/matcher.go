@@ -3,7 +3,7 @@ package planner
 import (
 	"net/http"
 
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/request"
 )
 
 // MatchRequest checks whether a request is matched.

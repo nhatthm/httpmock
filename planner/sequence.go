@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/nhatthm/httpmock/request"
+	"go.nhat.io/httpmock/request"
 )
 
 var _ Planner = (*sequence)(nil)

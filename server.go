@@ -10,11 +10,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/nhatthm/httpmock/format"
-	"github.com/nhatthm/httpmock/planner"
-	"github.com/nhatthm/httpmock/request"
-	"github.com/nhatthm/httpmock/test"
-	"github.com/nhatthm/httpmock/value"
+	"go.nhat.io/httpmock/format"
+	"go.nhat.io/httpmock/planner"
+	"go.nhat.io/httpmock/request"
+	"go.nhat.io/httpmock/test"
+	"go.nhat.io/httpmock/value"
 )
 
 // Server is a Mock server.

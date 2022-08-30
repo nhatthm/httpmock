@@ -3,7 +3,7 @@ package request
 import (
 	"net/http"
 
-	"github.com/nhatthm/httpmock/matcher"
+	"go.nhat.io/httpmock/matcher"
 )
 
 // Method returns the method of the expectation.

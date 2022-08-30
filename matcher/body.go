@@ -5,7 +5,7 @@ import (
 
 	"go.nhat.io/matcher/v2"
 
-	"github.com/nhatthm/httpmock/value"
+	"go.nhat.io/httpmock/value"
 )
 
 const initActual = "<could not decode>"
