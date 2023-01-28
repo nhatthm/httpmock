@@ -20,6 +20,7 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - deadcode
     - exhaustivestruct
     - exhaustruct
     - forbidigo
@@ -33,13 +34,15 @@ linters:
     - ireturn
     - lll
     - maligned
+    - nolintlint # https://github.com/golangci/golangci-lint/issues/3063
     - nonamedreturns
     - nosnakecase
-    - nolintlint # https://github.com/golangci/golangci-lint/issues/3063
     - paralleltest
     - scopelint
+    - structcheck
     - tagliatelle
     - testpackage
+    - varcheck
     - varnamelen
     - wrapcheck
 
