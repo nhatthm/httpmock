@@ -28,7 +28,7 @@ func DoRequest(
 // DoRequestWithTimeout sends a simple HTTP Request for testing and returns the status code, response headers and
 // response body along with the total execution time.
 //
-//	code, headers, body, _ = DoRequestWithTimeout(t, http.MethodGet, "/", nil, nil, 0)
+//	code, headers, body, _ = DoRequestWithTimeout(t, http.MethodGet, "/", map[string]string{}, nil, 0)
 func DoRequestWithTimeout(
 	tb testing.TB,
 	method, requestURI string,
