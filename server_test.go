@@ -11,7 +11,6 @@ import (
 
 	"go.nhat.io/httpmock"
 	"go.nhat.io/httpmock/mock/planner"
-	"go.nhat.io/httpmock/request"
 )
 
 type (
@@ -197,8 +196,8 @@ func TestServer_WithDefaultRequestOptions(t *testing.T) {
 	t.Parallel()
 
 	s := httpmock.MockServer(func(s *httpmock.Server) {
-		s.WithDefaultRequestOptions(func(r *request.Request) {
-			r.WithHeader("Content-Type", "application/json")
+		s.WithDefaultRequestOptions(func(e httpmock.Expectation) {
+			e.WithHeader("Content-Type", "application/json")
 		})
 
 		s.ExpectGet("/json").

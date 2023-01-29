@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"go.nhat.io/httpmock/request"
 )
 
 func TestServer_ExpectAliases(t *testing.T) {
@@ -69,8 +67,8 @@ func TestServer_ExpectAliases(t *testing.T) {
 			s := MockServer(tc.mockServer)
 			expectations := s.planner.Remain()
 
-			assert.Equal(t, tc.expectedMethod, request.Method(expectations[0]))
-			assert.Equal(t, Exact("/"), request.URIMatcher(expectations[0]))
+			assert.Equal(t, tc.expectedMethod, expectations[0].Method())
+			assert.Equal(t, Exact("/"), expectations[0].URIMatcher())
 		})
 	}
 }

@@ -7,25 +7,24 @@ import (
 	"strings"
 
 	"go.nhat.io/httpmock/format"
-	"go.nhat.io/httpmock/request"
 	"go.nhat.io/httpmock/value"
 )
 
 // Error represents an error that occurs while matching a request.
 type Error struct {
-	expected *request.Request
+	expected Expectation
 	actual   *http.Request
 
 	messageFormat string
-	messageArgs   []interface{}
+	messageArgs   []any
 }
 
 func (e Error) formatExpected(w io.Writer) {
 	format.ExpectedRequest(w,
-		request.Method(e.expected),
-		request.URIMatcher(e.expected),
-		request.HeaderMatcher(e.expected),
-		request.BodyMatcher(e.expected),
+		e.expected.Method(),
+		e.expected.URIMatcher(),
+		e.expected.HeaderMatcher(),
+		e.expected.BodyMatcher(),
 	)
 }
 
@@ -54,7 +53,7 @@ func (e Error) Error() string {
 }
 
 // NewError creates a new Error.
-func NewError(expected *request.Request, request *http.Request, messageFormat string, messageArgs ...interface{}) *Error {
+func NewError(expected Expectation, request *http.Request, messageFormat string, messageArgs ...any) *Error {
 	return &Error{
 		expected:      expected,
 		actual:        request,

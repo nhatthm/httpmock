@@ -7,7 +7,7 @@ import (
 	"go.nhat.io/httpmock/value"
 )
 
-func matchBody(v interface{}) *matcher.BodyMatcher {
+func matchBody(v any) *matcher.BodyMatcher {
 	switch v := v.(type) {
 	case matcher.Matcher,
 		func() matcher.Matcher,

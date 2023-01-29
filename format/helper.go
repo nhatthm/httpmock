@@ -2,7 +2,7 @@ package format
 
 import "reflect"
 
-func isNil(v interface{}) bool {
+func isNil(v any) bool {
 	if v == nil {
 		return true
 	}

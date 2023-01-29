@@ -8,7 +8,7 @@ import (
 )
 
 // String returns the string value of the given object.
-func String(v interface{}) string {
+func String(v any) string {
 	switch v := v.(type) {
 	case []byte:
 		return string(v)

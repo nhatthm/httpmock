@@ -6,12 +6,12 @@ var _ matcher.Matcher = (*FnMatcher)(nil)
 
 // FnMatcher is a matcher that call itself.
 type FnMatcher struct {
-	match    func(actual interface{}) (bool, error)
+	match    func(actual any) (bool, error)
 	expected func() string
 }
 
 // Match satisfies the matcher.Matcher interface.
-func (f FnMatcher) Match(actual interface{}) (bool, error) {
+func (f FnMatcher) Match(actual any) (bool, error) {
 	return f.match(actual)
 }
 
@@ -21,7 +21,7 @@ func (f FnMatcher) Expected() string {
 }
 
 // Fn creates a new FnMatcher matcher.
-func Fn(expected string, match func(actual interface{}) (bool, error)) FnMatcher {
+func Fn(expected string, match func(actual any) (bool, error)) FnMatcher {
 	return FnMatcher{
 		match: match,
 		expected: func() string {

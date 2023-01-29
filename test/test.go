@@ -2,14 +2,14 @@ package test
 
 // T is an interface wrapper around *testing.T.
 type T interface {
-	Errorf(format string, args ...interface{})
+	Errorf(format string, args ...any)
 	FailNow()
 	Cleanup(func())
 }
 
 type noOp struct{}
 
-func (noOp) Errorf(string, ...interface{}) {}
+func (noOp) Errorf(string, ...any) {}
 
 func (noOp) FailNow() {}
 

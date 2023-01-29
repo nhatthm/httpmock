@@ -12,15 +12,14 @@ import (
 
 	"go.nhat.io/httpmock/format"
 	"go.nhat.io/httpmock/planner"
-	"go.nhat.io/httpmock/request"
 	"go.nhat.io/httpmock/test"
 	"go.nhat.io/httpmock/value"
 )
 
 // Server is a Mock server.
 type Server struct {
-	// Holds the requested that were made to this server.
-	Requests []request.Request
+	// Requests are the matched expectations.
+	Requests []planner.Expectation
 
 	// Test server.
 	server  *httptest.Server
@@ -32,7 +31,7 @@ type Server struct {
 	mu   sync.Mutex
 
 	// defaultRequestOptions contains a list of default options what will be applied to every new requests.
-	defaultRequestOptions []func(r *request.Request)
+	defaultRequestOptions []func(e Expectation)
 	// defaultResponseHeader contains a list of default headers that will be sent to client.
 	defaultResponseHeader map[string]string
 }
@@ -74,7 +73,7 @@ func (s *Server) WithTest(t test.T) *Server {
 }
 
 // WithDefaultRequestOptions sets the default request options of the server.
-func (s *Server) WithDefaultRequestOptions(opt func(r *request.Request)) *Server {
+func (s *Server) WithDefaultRequestOptions(opt func(e Expectation)) *Server {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -106,8 +105,10 @@ func (s *Server) Close() {
 // Expect adds a new expected request.
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
-func (s *Server) Expect(method string, requestURI interface{}) *request.Request {
-	expect := request.NewRequest(&s.mu, method, requestURI).Once()
+func (s *Server) Expect(method string, requestURI any) Expectation {
+	expect := newRequestExpectation(method, requestURI)
+
+	expect.Once()
 
 	for _, o := range s.defaultRequestOptions {
 		o(expect)
@@ -124,42 +125,42 @@ func (s *Server) Expect(method string, requestURI interface{}) *request.Request 
 // ExpectGet adds a new expected http.MethodGet request.
 //
 //	Server.ExpectGet("/path")
-func (s *Server) ExpectGet(requestURI interface{}) *request.Request {
+func (s *Server) ExpectGet(requestURI any) Expectation {
 	return s.Expect(MethodGet, requestURI)
 }
 
 // ExpectHead adds a new expected http.MethodHead request.
 //
 //	Server.ExpectHead("/path")
-func (s *Server) ExpectHead(requestURI interface{}) *request.Request {
+func (s *Server) ExpectHead(requestURI any) Expectation {
 	return s.Expect(MethodHead, requestURI)
 }
 
 // ExpectPost adds a new expected http.MethodPost request.
 //
 //	Server.ExpectPost("/path")
-func (s *Server) ExpectPost(requestURI interface{}) *request.Request {
+func (s *Server) ExpectPost(requestURI any) Expectation {
 	return s.Expect(MethodPost, requestURI)
 }
 
 // ExpectPut adds a new expected http.MethodPut request.
 //
 //	Server.ExpectPut("/path")
-func (s *Server) ExpectPut(requestURI interface{}) *request.Request {
+func (s *Server) ExpectPut(requestURI any) Expectation {
 	return s.Expect(MethodPut, requestURI)
 }
 
 // ExpectPatch adds a new expected http.MethodPatch request.
 //
 //	Server.ExpectPatch("/path")
-func (s *Server) ExpectPatch(requestURI interface{}) *request.Request {
+func (s *Server) ExpectPatch(requestURI any) Expectation {
 	return s.Expect(MethodPatch, requestURI)
 }
 
 // ExpectDelete adds a new expected http.MethodDelete request.
 //
 //	Server.ExpectDelete("/path")
-func (s *Server) ExpectDelete(requestURI interface{}) *request.Request {
+func (s *Server) ExpectDelete(requestURI any) Expectation {
 	return s.Expect(MethodDelete, requestURI)
 }
 
@@ -181,8 +182,8 @@ func (s *Server) ExpectationsWereMet() error {
 	sb.WriteString("there are remaining expectations that were not met:\n")
 
 	for _, expected := range s.planner.Remain() {
-		repeat := request.Repeatability(expected)
-		calls := request.NumCalls(expected)
+		repeat := expected.RemainTimes()
+		calls := expected.FulfilledTimes()
 
 		if repeat < 1 && calls > 0 {
 			continue
@@ -190,12 +191,12 @@ func (s *Server) ExpectationsWereMet() error {
 
 		sb.WriteString("- ")
 		format.ExpectedRequestTimes(&sb,
-			request.Method(expected),
-			request.URIMatcher(expected),
-			request.HeaderMatcher(expected),
-			request.BodyMatcher(expected),
-			calls,
-			repeat,
+			expected.Method(),
+			expected.URIMatcher(),
+			expected.HeaderMatcher(),
+			expected.BodyMatcher(),
+			int(calls),
+			int(repeat),
 		)
 
 		count++
@@ -233,19 +234,27 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Log the request.
-	request.CountCall(expected)
+	expected.Fulfilled()
 
-	s.Requests = append(s.Requests, *expected)
+	s.Requests = append(s.Requests, expected)
 
-	err = request.Handle(expected, w, r, s.defaultResponseHeader)
-	require.NoError(s.test, err)
+	if h, ok := expected.(interface {
+		Handle(http.ResponseWriter, *http.Request, map[string]string) error
+	}); ok {
+		err = h.Handle(w, r, s.defaultResponseHeader)
+		require.NoError(s.test, err)
+
+		return
+	}
+
+	s.failResponsef(w, "could not handle request: %s %s", r.Method, r.RequestURI)
 }
 
-func (s *Server) failResponsef(w http.ResponseWriter, format string, args ...interface{}) {
+func (s *Server) failResponsef(w http.ResponseWriter, format string, args ...any) {
 	body := fmt.Sprintf(format, args...)
 	s.test.Errorf(body)
 
-	err := request.FailResponse(w, body)
+	err := FailResponse(w, body)
 
 	require.NoError(s.test, err, "could not write response: %q", body)
 }
