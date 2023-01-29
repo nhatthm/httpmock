@@ -24,7 +24,7 @@ func (m *BodyMatcher) Matcher() matcher.Matcher {
 }
 
 // Match satisfies matcher.Matcher interface.
-func (m *BodyMatcher) Match(in interface{}) (bool, error) {
+func (m *BodyMatcher) Match(in any) (bool, error) {
 	m.actual = initActual
 
 	actual, err := value.GetBody(in.(*http.Request))
@@ -48,7 +48,7 @@ func (m BodyMatcher) Expected() string {
 }
 
 // Body initiates a new body matcher.
-func Body(v interface{}) *BodyMatcher {
+func Body(v any) *BodyMatcher {
 	return &BodyMatcher{
 		matcher: matcher.Match(v),
 	}

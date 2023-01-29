@@ -2,12 +2,10 @@ package planner
 
 import (
 	"net/http"
-
-	"go.nhat.io/httpmock/request"
 )
 
 // MatchRequest checks whether a request is matched.
-func MatchRequest(expected *request.Request, actual *http.Request) error {
+func MatchRequest(expected Expectation, actual *http.Request) error {
 	if err := MatchMethod(expected, actual); err != nil {
 		return err
 	}
@@ -28,12 +26,10 @@ func MatchRequest(expected *request.Request, actual *http.Request) error {
 }
 
 // MatchMethod matches the method of a given request.
-func MatchMethod(expected *request.Request, actual *http.Request) (err error) {
-	expectedMethod := request.Method(expected)
-
-	if expectedMethod != actual.Method {
+func MatchMethod(expected Expectation, actual *http.Request) (err error) {
+	if expected.Method() != actual.Method {
 		return NewError(expected, actual,
-			"method %q expected, %q received", expectedMethod, actual.Method,
+			"method %q expected, %q received", expected.Method(), actual.Method,
 		)
 	}
 
@@ -41,8 +37,8 @@ func MatchMethod(expected *request.Request, actual *http.Request) (err error) {
 }
 
 // MatchURI matches the URI of a given request.
-func MatchURI(expected *request.Request, actual *http.Request) (err error) {
-	uri := request.URIMatcher(expected)
+func MatchURI(expected Expectation, actual *http.Request) (err error) {
+	uri := expected.URIMatcher()
 
 	defer func() {
 		if p := recover(); p != nil {
@@ -69,8 +65,8 @@ func MatchURI(expected *request.Request, actual *http.Request) (err error) {
 }
 
 // MatchHeader matches the header of a given request.
-func MatchHeader(expected *request.Request, actual *http.Request) (err error) {
-	header := request.HeaderMatcher(expected)
+func MatchHeader(expected Expectation, actual *http.Request) (err error) {
+	header := expected.HeaderMatcher()
 	if len(header) == 0 {
 		return nil
 	}
@@ -91,8 +87,8 @@ func MatchHeader(expected *request.Request, actual *http.Request) (err error) {
 }
 
 // MatchBody matches the payload of a given request.
-func MatchBody(expected *request.Request, actual *http.Request) (err error) {
-	m := request.BodyMatcher(expected)
+func MatchBody(expected Expectation, actual *http.Request) (err error) {
+	m := expected.BodyMatcher()
 	if m == nil {
 		return nil
 	}

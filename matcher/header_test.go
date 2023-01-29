@@ -30,7 +30,7 @@ func TestHeaderMatcher_Match(t *testing.T) {
 		{
 			scenario: "match error",
 			matcher: matcher.HeaderMatcher{
-				"Authorization": matcher.Fn("", func(interface{}) (bool, error) {
+				"Authorization": matcher.Fn("", func(any) (bool, error) {
 					return false, errors.New("match error")
 				}),
 			},

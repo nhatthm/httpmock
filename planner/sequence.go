@@ -3,14 +3,12 @@ package planner
 import (
 	"net/http"
 	"sync"
-
-	"go.nhat.io/httpmock/request"
 )
 
 var _ Planner = (*sequence)(nil)
 
 type sequence struct {
-	expectations []*request.Request
+	expectations []Expectation
 
 	mu sync.Mutex
 }
@@ -22,14 +20,14 @@ func (s *sequence) IsEmpty() bool {
 	return len(s.expectations) == 0
 }
 
-func (s *sequence) Expect(expect *request.Request) {
+func (s *sequence) Expect(e Expectation) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.expectations = append(s.expectations, expect)
+	s.expectations = append(s.expectations, e)
 }
 
-func (s *sequence) Plan(req *http.Request) (*request.Request, error) {
+func (s *sequence) Plan(req *http.Request) (Expectation, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -37,13 +35,13 @@ func (s *sequence) Plan(req *http.Request) (*request.Request, error) {
 		return nil, err
 	}
 
-	expected, expectations := nextExpectations(s.expectations)
+	expected, expectations := nextInSequence(s.expectations)
 	s.expectations = expectations
 
 	return expected, nil
 }
 
-func (s *sequence) Remain() []*request.Request {
+func (s *sequence) Remain() []Expectation {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -62,20 +60,11 @@ func Sequence() Planner {
 	return &sequence{}
 }
 
-func nextExpectations(expectedRequests []*request.Request) (*request.Request, []*request.Request) {
+func nextInSequence(expectedRequests []Expectation) (Expectation, []Expectation) {
 	r := expectedRequests[0]
-	t := request.Repeatability(r)
 
-	if t == 0 {
+	if trackRepeatable(r) {
 		return r, expectedRequests
-	}
-
-	if t > 0 {
-		request.SetRepeatability(r, t-1)
-
-		if request.Repeatability(r) > 0 {
-			return r, expectedRequests
-		}
 	}
 
 	return r, expectedRequests[1:]

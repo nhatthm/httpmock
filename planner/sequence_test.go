@@ -1,15 +1,15 @@
-package planner
+package planner_test
 
 import (
 	"regexp"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"go.nhat.io/httpmock/matcher"
 	"go.nhat.io/httpmock/mock/http"
-	"go.nhat.io/httpmock/request"
+	plannermock "go.nhat.io/httpmock/mock/planner"
+	"go.nhat.io/httpmock/planner"
 )
 
 func TestSequence(t *testing.T) {
@@ -20,17 +20,20 @@ func TestSequence(t *testing.T) {
 	testCases := []struct {
 		scenario        string
 		request         *http.Request
-		expectations    []*request.Request
+		mockExpectation plannermock.ExpectationMocker
 		expectedRequest bool
 		expectedRemain  int
 		expectedError   string
 	}{
 		{
-			scenario: "urmethodi mismatched",
+			scenario: "method mismatched",
 			request:  http.BuildRequest().WithMethod(http.MethodPost).Build(),
-			expectations: []*request.Request{
-				request.NewRequest(&sync.Mutex{}, http.MethodGet, "/").Once(),
-			},
+			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("HeaderMatcher").Maybe().Return(nil)
+				e.On("BodyMatcher").Maybe().Return(nil)
+			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
 Actual: POST /
@@ -40,9 +43,12 @@ Error: method "GET" expected, "POST" received
 		{
 			scenario: "uri mismatched",
 			request:  http.BuildRequest().WithURI("/users").Build(),
-			expectations: []*request.Request{
-				request.NewRequest(&sync.Mutex{}, http.MethodGet, "/").Once(),
-			},
+			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("HeaderMatcher").Maybe().Return(nil)
+				e.On("BodyMatcher").Maybe().Return(nil)
+			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
 Actual: GET /users
@@ -54,10 +60,14 @@ Error: request uri "/" expected, "/users" received
 			request: http.BuildRequest().
 				WithHeader(`Authorization`, `Bearer foobar`).
 				Build(),
-			expectations: []*request.Request{
-				request.NewRequest(&sync.Mutex{}, http.MethodGet, "/").Once().
-					WithHeader("Authorization", `Bearer token`),
-			},
+			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("HeaderMatcher").Maybe().Return(matcher.HeaderMatcher{
+					"Authorization": matcher.Match(`Bearer token`),
+				})
+				e.On("BodyMatcher").Maybe().Return(nil)
+			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
     with header:
@@ -71,10 +81,12 @@ Error: header "Authorization" with value "Bearer token" expected, "Bearer foobar
 		{
 			scenario: "payload mismatched",
 			request:  http.BuildRequest().Build(),
-			expectations: []*request.Request{
-				request.NewRequest(&sync.Mutex{}, http.MethodGet, "/").Once().
-					WithBody(payload),
-			},
+			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("HeaderMatcher").Maybe().Return(nil)
+				e.On("BodyMatcher").Maybe().Return(matcher.Body(payload))
+			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
     with body
@@ -84,16 +96,38 @@ Error: expected request body: {"id": 42}, received:
 `,
 		},
 		{
-			scenario: "success",
+			scenario: "success - unlimited times",
 			request: http.BuildRequest().
 				WithBody(payload).
 				WithHeader("Authorization", "Bearer foobar").
 				Build(),
-			expectations: []*request.Request{
-				request.NewRequest(&sync.Mutex{}, http.MethodGet, "/").Once().
-					WithHeader("Authorization", regexp.MustCompile(`^Bearer `)).
-					WithBody(matcher.JSON(`{"id":42}`)),
-			},
+			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("HeaderMatcher").Maybe().Return(matcher.HeaderMatcher{
+					"Authorization": matcher.Match(regexp.MustCompile(`^Bearer `)),
+				})
+				e.On("BodyMatcher").Maybe().Return(matcher.Body(payload))
+				e.On("RemainTimes").Return(uint(0))
+			}),
+			expectedRemain:  1,
+			expectedRequest: true,
+		},
+		{
+			scenario: "success - once",
+			request: http.BuildRequest().
+				WithBody(payload).
+				WithHeader("Authorization", "Bearer foobar").
+				Build(),
+			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("HeaderMatcher").Maybe().Return(matcher.HeaderMatcher{
+					"Authorization": matcher.Match(regexp.MustCompile(`^Bearer `)),
+				})
+				e.On("BodyMatcher").Maybe().Return(matcher.Body(payload))
+				e.On("RemainTimes").Return(uint(1))
+			}),
 			expectedRequest: true,
 		},
 	}
@@ -103,11 +137,9 @@ Error: expected request body: {"id": 42}, received:
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			p := Sequence()
+			p := planner.Sequence()
 
-			for _, r := range tc.expectations {
-				p.Expect(r)
-			}
+			p.Expect(tc.mockExpectation(t))
 
 			result, err := p.Plan(tc.request)
 			remain := p.Remain()
@@ -127,15 +159,30 @@ Error: expected request body: {"id": 42}, received:
 func TestSequence_Empty(t *testing.T) {
 	t.Parallel()
 
-	p := Sequence()
+	p := planner.Sequence()
 
 	assert.True(t, p.IsEmpty())
 
-	p.Expect(request.NewRequest(nil, http.MethodGet, "/"))
+	p.Expect(plannermock.NoMockExpectation(t))
 
 	assert.False(t, p.IsEmpty())
 
 	p.Reset()
 
 	assert.True(t, p.IsEmpty())
+}
+
+func TestSequence_Reset(t *testing.T) {
+	t.Parallel()
+
+	e := plannermock.NoMockExpectation(t)
+	p := planner.Sequence()
+
+	p.Expect(e)
+
+	assert.Equal(t, []planner.Expectation{e}, p.Remain())
+
+	p.Reset()
+
+	assert.Empty(t, p.Remain())
 }

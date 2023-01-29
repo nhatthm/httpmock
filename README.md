@@ -139,7 +139,7 @@ Further reading:
 makes `httpmock` more powerful and convenient than ever. When writing expectations for the header or the payload, you
 can use any kind of matchers for your needs.
 
-For example, the `Request.WithHeader(header string, value interface{})` means you expect a header that matches a value,
+For example, the `Request.WithHeader(header string, value any)` means you expect a header that matches a value,
 you can put any of these into the `value`:
 
 |          Type          | Explanation                            | Example                                               |
@@ -209,7 +209,7 @@ the [`matcher.Matcher`](https://github.com/nhatthm/go-matcher/blob/master/matche
 
 ### Request URI
 
-Use the `Server.Expect(method string, requestURI interface{})`, or `Server.Expect[METHOD](requestURI interface{})` to
+Use the `Server.Expect(method string, requestURI any)`, or `Server.Expect[METHOD](requestURI any)` to
 start a new expectation. You can put a `string`, a `[]byte` or a [`matcher.Matcher`](#match-a-value) for
 the `requestURI`. If the `value` is a `string` or a `[]byte`, the URI is checked by using the [`matcher.Exact`](#exact).
 
@@ -241,8 +241,8 @@ func TestSimple(t *testing.T) {
 
 To check whether the header of the incoming request matches some values. You can use:
 
-- `Request.WithHeader(key string, value interface{})`: to match a single header.
-- `Request.WithHeaders(header map[string]interface{})`: to match multiple headers.
+- `Request.WithHeader(key string, value any)`: to match a single header.
+- `Request.WithHeaders(header map[string]any)`: to match multiple headers.
 
 The `value` could be `string`, `[]byte`, or a [`matcher.Matcher`](#match-a-value). If the `value` is a `string` or
 a `[]byte`, the header is checked by using the [`matcher.Exact`](#exact).
@@ -274,11 +274,11 @@ func TestSimple(t *testing.T) {
 
 There are several ways to match a request body:
 
-- `WithBody(body interface{})`: The expected body can be a `string`, a `[]byte` or a [`matcher.Matcher`](#match-a-value)
+- `WithBody(body any)`: The expected body can be a `string`, a `[]byte` or a [`matcher.Matcher`](#match-a-value)
   . If it is a `string` or a `[]byte`, the request body is checked by [`matched.Exact`](#exact).
-- `WithBodyf(format string, args ...interface{})`: Old school `fmt.Sprintf()` call, the request body is checked
+- `WithBodyf(format string, args ...any)`: Old school `fmt.Sprintf()` call, the request body is checked
   by [`matched.Exact`](#exact) with the result from `fmt.Sprintf()`.
-- `WithBodyJSON(body interface{})`: The expected body will be marshaled using `json.Marshal()` and the request body is
+- `WithBodyJSON(body any)`: The expected body will be marshaled using `json.Marshal()` and the request body is
   checked by [`matched.JSON`](#json).
 
 For example:
@@ -316,7 +316,7 @@ import (
 func TestSimple(t *testing.T) {
 	srv := httpmock.New(func(s *httpmock.Server) {
 		s.ExpectPost("/users").
-			WithBodyJSON(map[string]interface{}{"id": 42})
+			WithBodyJSON(map[string]any{"id": 42})
 	})(t)
 
 	// Your request and assertions.
@@ -392,8 +392,8 @@ There are several ways to create a response for the request
 | Method                                        | Explanation                                                               | Example                                                                                |
 |:----------------------------------------------|:--------------------------------------------------------------------------|:---------------------------------------------------------------------------------------|
 | `Return(v string,bytes,fmt.Stringer)`         | Nothing fancy, the response is the given string                           | `Return("hello world")`                                                                |
-| `Returnf(format string, args ...interface{})` | Same as `Return()`, but with support for formatting using `fmt.Sprintf()` | `Returnf("hello %s", "world")`                                                         |
-| `ReturnJSON(v interface{})`                   | The response is the result of `json.Marshal(v)`                           | `ReturnJSON(map[string]string{"name": "john"})`                                        |
+| `Returnf(format string, args ...any)` | Same as `Return()`, but with support for formatting using `fmt.Sprintf()` | `Returnf("hello %s", "world")`                                                         |
+| `ReturnJSON(v any)`                   | The response is the result of `json.Marshal(v)`                           | `ReturnJSON(map[string]string{"name": "john"})`                                        |
 | `ReturnFile(path string)`                     | The response is the content of given file, read by `io.ReadFile()`        | `ReturnFile("resources/fixtures/result.json")`                                         |
 | `Run(func(r *http.Request) ([]byte, error))`  | Custom Logic                                                              | [See the example](https://github.com/nhatthm/httpmock/blob/master/example_test.go#L44) |
 
@@ -497,7 +497,7 @@ func TestCustomResponse(t *testing.T) {
 			WithBody(`{"name":"John Doe"}`).
 			After(time.Second).
 			ReturnCode(httpmock.StatusCreated).
-			ReturnJSON(map[string]interface{}{
+			ReturnJSON(map[string]any{
 				"id":   1,
 				"name": "John Doe",
 			})
@@ -527,7 +527,7 @@ func TestExpectationsWereNotMet(t *testing.T) {
 			WithHeader("Authorization", "Bearer token").
 			WithBody(`{"name":"John Doe"}`).
 			After(time.Second).
-			ReturnJSON(map[string]interface{}{
+			ReturnJSON(map[string]any{
 				"id":   1,
 				"name": "John Doe",
 			})

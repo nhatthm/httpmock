@@ -6,7 +6,9 @@ import (
 )
 
 // FailResponse responds a failure to client.
-func FailResponse(w http.ResponseWriter, format string, args ...interface{}) error {
+//
+// Deprecated: the package will be removed in the future.
+func FailResponse(w http.ResponseWriter, format string, args ...any) error {
 	body := fmt.Sprintf(format, args...)
 
 	w.WriteHeader(http.StatusInternalServerError)

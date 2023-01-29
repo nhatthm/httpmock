@@ -18,9 +18,9 @@ func ExpectedRequest(w io.Writer, method string, uri matcher.Matcher, header mat
 
 // ExpectedRequestTimes formats an expected request with total and remaining calls.
 func ExpectedRequestTimes(w io.Writer, method string, uri matcher.Matcher, header matcher.HeaderMatcher, body *matcher.BodyMatcher, totalCalls, remainingCalls int) {
-	expectedHeader := map[string]interface{}(nil)
+	expectedHeader := map[string]any(nil)
 	if header != nil {
-		expectedHeader = make(map[string]interface{}, len(header))
+		expectedHeader = make(map[string]any, len(header))
 
 		for header, m := range header {
 			expectedHeader[header] = m
@@ -32,9 +32,9 @@ func ExpectedRequestTimes(w io.Writer, method string, uri matcher.Matcher, heade
 
 // HTTPRequest formats a request.
 func HTTPRequest(w io.Writer, method, uri string, header http.Header, body []byte) {
-	expectedHeader := map[string]interface{}(nil)
+	expectedHeader := map[string]any(nil)
 	if header != nil {
-		expectedHeader = make(map[string]interface{}, len(header))
+		expectedHeader = make(map[string]any, len(header))
 
 		for key := range header {
 			expectedHeader[key] = header.Get(key)
@@ -44,7 +44,7 @@ func HTTPRequest(w io.Writer, method, uri string, header http.Header, body []byt
 	formatRequestTimes(w, method, uri, expectedHeader, body, 0, 0)
 }
 
-func formatRequestTimes(w io.Writer, method string, uri interface{}, header map[string]interface{}, body interface{}, totalCalls, remainingCalls int) {
+func formatRequestTimes(w io.Writer, method string, uri any, header map[string]any, body any, totalCalls, remainingCalls int) {
 	_, _ = fmt.Fprintf(w, "%s %s", method, formatValueInline(uri))
 
 	if remainingCalls > 0 && (totalCalls != 0 || remainingCalls != 1) {
@@ -81,7 +81,7 @@ func formatRequestTimes(w io.Writer, method string, uri interface{}, header map[
 	}
 }
 
-func formatValueInline(v interface{}) string {
+func formatValueInline(v any) string {
 	if v == nil {
 		return "<nil>"
 	}
@@ -107,7 +107,7 @@ func formatValueInline(v interface{}) string {
 	}
 }
 
-func formatType(v interface{}) string {
+func formatType(v any) string {
 	if isNil(v) {
 		return ""
 	}
@@ -131,7 +131,7 @@ func formatType(v interface{}) string {
 }
 
 // nolint: cyclop
-func formatValue(v interface{}) string {
+func formatValue(v any) string {
 	if v == nil {
 		return "<nil>"
 	}

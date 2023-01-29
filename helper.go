@@ -2,6 +2,7 @@ package httpmock
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -25,7 +26,7 @@ func DoRequest(
 	return DoRequestWithTimeout(tb, method, requestURI, headers, body, time.Second)
 }
 
-// DoRequestWithTimeout sends a simple HTTP Request for testing and returns the status code, response headers and
+// DoRequestWithTimeout sends a simple HTTP requestExpectation for testing and returns the status code, response headers and
 // response body along with the total execution time.
 //
 //	code, headers, body, _ = DoRequestWithTimeout(t, http.MethodGet, "/", map[string]string{}, nil, 0)
@@ -77,6 +78,15 @@ func DoRequestWithTimeout(
 	require.NoError(tb, err, "could not close response body")
 
 	return respCode, respHeaders, respBody, elapsed
+}
+
+// FailResponse responds a failure to client.
+func FailResponse(w http.ResponseWriter, format string, args ...any) error {
+	w.WriteHeader(http.StatusInternalServerError)
+
+	_, err := fmt.Fprintf(w, format, args...)
+
+	return err
 }
 
 // AssertHeaderContains asserts that the HTTP headers contains some specifics headers.

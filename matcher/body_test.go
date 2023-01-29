@@ -17,7 +17,7 @@ func TestBodyMatcher_Match(t *testing.T) {
 
 	testCases := []struct {
 		scenario       string
-		body           interface{}
+		body           any
 		request        *http.Request
 		expectedResult bool
 		expectedActual string

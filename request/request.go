@@ -15,6 +15,8 @@ import (
 )
 
 // Request is an expectation.
+//
+// Deprecated: the package will be removed in the future.
 type Request struct {
 	locker sync.Locker
 
@@ -50,7 +52,7 @@ type Request struct {
 }
 
 // NewRequest creates a new request expectation.
-func NewRequest(locker sync.Locker, method string, requestURI interface{}) *Request {
+func NewRequest(locker sync.Locker, method string, requestURI any) *Request {
 	return &Request{
 		locker:        locker,
 		method:        method,
@@ -79,7 +81,7 @@ func (r *Request) unlock() {
 //		WithHeader("foo", "bar")
 //
 //nolint:unparam
-func (r *Request) WithHeader(header string, value interface{}) *Request {
+func (r *Request) WithHeader(header string, value any) *Request {
 	r.lock()
 	defer r.unlock()
 
@@ -95,8 +97,8 @@ func (r *Request) WithHeader(header string, value interface{}) *Request {
 // WithHeaders sets a list of expected headers of the given request.
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
-//		WithHeaders(map[string]interface{}{"foo": "bar"})
-func (r *Request) WithHeaders(headers map[string]interface{}) *Request {
+//		WithHeaders(map[string]any{"foo": "bar"})
+func (r *Request) WithHeaders(headers map[string]any) *Request {
 	for header, value := range headers {
 		r.WithHeader(header, value)
 	}
@@ -108,7 +110,7 @@ func (r *Request) WithHeaders(headers map[string]interface{}) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithBody("hello world!")
-func (r *Request) WithBody(body interface{}) *Request {
+func (r *Request) WithBody(body any) *Request {
 	r.lock()
 	defer r.unlock()
 
@@ -121,7 +123,7 @@ func (r *Request) WithBody(body interface{}) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithBodyf("hello %s", "john)
-func (r *Request) WithBodyf(format string, args ...interface{}) *Request {
+func (r *Request) WithBodyf(format string, args ...any) *Request {
 	return r.WithBody(fmt.Sprintf(format, args...))
 }
 
@@ -131,7 +133,7 @@ func (r *Request) WithBodyf(format string, args ...interface{}) *Request {
 //		WithBodyJSON(map[string]string{"foo": "bar"})
 //
 // nolint:unparam
-func (r *Request) WithBodyJSON(v interface{}) *Request {
+func (r *Request) WithBodyJSON(v any) *Request {
 	body, err := json.Marshal(v)
 	if err != nil {
 		panic(err)
@@ -187,7 +189,7 @@ func (r *Request) ReturnHeaders(headers Header) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		Return("hello world!")
-func (r *Request) Return(v interface{}) *Request {
+func (r *Request) Return(v any) *Request {
 	body := []byte(value.String(v))
 
 	return r.Run(func(*http.Request) ([]byte, error) {
@@ -199,7 +201,7 @@ func (r *Request) Return(v interface{}) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		Returnf("hello %s", "john")
-func (r *Request) Returnf(format string, args ...interface{}) *Request {
+func (r *Request) Returnf(format string, args ...any) *Request {
 	return r.Return(fmt.Sprintf(format, args...))
 }
 
@@ -207,7 +209,7 @@ func (r *Request) Returnf(format string, args ...interface{}) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		ReturnJSON(map[string]string{"foo": "bar"})
-func (r *Request) ReturnJSON(body interface{}) *Request {
+func (r *Request) ReturnJSON(body any) *Request {
 	return r.Run(func(*http.Request) ([]byte, error) {
 		return json.Marshal(body)
 	})

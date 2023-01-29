@@ -16,7 +16,7 @@ type TestingT struct {
 	clean func()
 }
 
-func (t *TestingT) Errorf(format string, args ...interface{}) {
+func (t *TestingT) Errorf(format string, args ...any) {
 	_, _ = fmt.Fprintf(t, format, args...)
 }
 

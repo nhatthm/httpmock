@@ -1,16 +1,16 @@
-package planner
+package planner_test
 
 import (
 	"errors"
 	"regexp"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"go.nhat.io/httpmock/matcher"
 	"go.nhat.io/httpmock/mock/http"
-	"go.nhat.io/httpmock/request"
+	plannermock "go.nhat.io/httpmock/mock/planner"
+	"go.nhat.io/httpmock/planner"
 )
 
 func TestMatchURI(t *testing.T) {
@@ -18,12 +18,12 @@ func TestMatchURI(t *testing.T) {
 
 	testCases := []struct {
 		scenario      string
-		uri           interface{}
+		uri           any
 		expectedError string
 	}{
 		{
 			scenario: "match panic",
-			uri: matcher.Fn("<panic>", func(interface{}) (bool, error) {
+			uri: matcher.Fn("<panic>", func(any) (bool, error) {
 				panic("match panic")
 			}),
 			expectedError: `Expected: GET <panic>
@@ -33,7 +33,7 @@ Error: could not match request uri: match panic
 		},
 		{
 			scenario: "match error",
-			uri: matcher.Fn("<error>", func(interface{}) (bool, error) {
+			uri: matcher.Fn("<error>", func(any) (bool, error) {
 				return false, errors.New("match error")
 			}),
 			expectedError: `Expected: GET <error>
@@ -43,7 +43,7 @@ Error: could not match request uri: match error
 		},
 		{
 			scenario: "mismatched",
-			uri:      "/users",
+			uri:      matcher.Match("/users"),
 			expectedError: `Expected: GET /users
 Actual: GET /
 Error: request uri "/users" expected, "/" received
@@ -51,7 +51,7 @@ Error: request uri "/users" expected, "/" received
 		},
 		{
 			scenario: "matched",
-			uri:      "/",
+			uri:      matcher.Match("/"),
 		},
 	}
 
@@ -60,9 +60,14 @@ Error: request uri "/users" expected, "/" received
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			expected := request.NewRequest(&sync.Mutex{}, http.MethodGet, tc.uri)
+			expected := plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("URIMatcher").Return(tc.uri)
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("HeaderMatcher").Maybe().Return(nil)
+				e.On("BodyMatcher").Maybe().Return(nil)
+			})(t)
 
-			err := MatchURI(expected, http.BuildRequest().Build())
+			err := planner.MatchURI(expected, http.BuildRequest().Build())
 
 			if tc.expectedError == "" {
 				assert.NoError(t, err)
@@ -78,20 +83,19 @@ func TestMatchHeader(t *testing.T) {
 
 	testCases := []struct {
 		scenario      string
-		expect        func(r *request.Request)
+		headerMatcher matcher.HeaderMatcher
 		request       *http.Request
 		expectedError string
 	}{
 		{
 			scenario: "no header",
-			expect:   func(r *request.Request) {},
 		},
 		{
 			scenario: "match panic",
-			expect: func(r *request.Request) {
-				r.WithHeader("Authorization", matcher.Fn("<panic>", func(interface{}) (bool, error) {
+			headerMatcher: map[string]matcher.Matcher{
+				"Authorization": matcher.Fn("<panic>", func(any) (bool, error) {
 					panic("match panic")
-				}))
+				}),
 			},
 			request: http.BuildRequest().Build(),
 			expectedError: `Expected: GET /
@@ -103,10 +107,10 @@ Error: could not match header: match panic
 		},
 		{
 			scenario: "match error",
-			expect: func(r *request.Request) {
-				r.WithHeader("Authorization", matcher.Fn("<error>", func(interface{}) (bool, error) {
+			headerMatcher: map[string]matcher.Matcher{
+				"Authorization": matcher.Fn("<error>", func(any) (bool, error) {
 					return false, errors.New("match error")
-				}))
+				}),
 			},
 			request: http.BuildRequest().Build(),
 			expectedError: `Expected: GET /
@@ -118,8 +122,8 @@ Error: could not match header: match error
 		},
 		{
 			scenario: "mismatched",
-			expect: func(r *request.Request) {
-				r.WithHeader("Authorization", "Bearer token")
+			headerMatcher: map[string]matcher.Matcher{
+				"Authorization": matcher.Match("Bearer token"),
 			},
 			request: http.BuildRequest().
 				WithHeader("Authorization", "Bearer foobar").
@@ -135,8 +139,8 @@ Error: header "Authorization" with value "Bearer token" expected, "Bearer foobar
 		},
 		{
 			scenario: "matched",
-			expect: func(r *request.Request) {
-				r.WithHeader("Authorization", regexp.MustCompile(`^Bearer `))
+			headerMatcher: map[string]matcher.Matcher{
+				"Authorization": matcher.Match(regexp.MustCompile(`^Bearer `)),
 			},
 			request: http.BuildRequest().
 				WithHeader("Authorization", "Bearer foobar").
@@ -149,11 +153,14 @@ Error: header "Authorization" with value "Bearer token" expected, "Bearer foobar
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			expected := request.NewRequest(&sync.Mutex{}, http.MethodGet, "/")
+			expected := plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("HeaderMatcher").Return(tc.headerMatcher)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("BodyMatcher").Maybe().Return(nil)
+			})(t)
 
-			tc.expect(expected)
-
-			err := MatchHeader(expected, tc.request)
+			err := planner.MatchHeader(expected, tc.request)
 
 			if tc.expectedError == "" {
 				assert.NoError(t, err)
@@ -171,21 +178,18 @@ func TestMatchBody(t *testing.T) {
 
 	testCases := []struct {
 		scenario      string
-		expect        func(r *request.Request)
+		bodyMatcher   *matcher.BodyMatcher
 		request       *http.Request
 		expectedError string
 	}{
 		{
 			scenario: "no expect",
-			expect:   func(r *request.Request) {},
 		},
 		{
 			scenario: "match panic",
-			expect: func(r *request.Request) {
-				r.WithBody(matcher.Fn("<panic>", func(interface{}) (bool, error) {
-					panic("match panic")
-				}))
-			},
+			bodyMatcher: matcher.Body(matcher.Fn("<panic>", func(any) (bool, error) {
+				panic("match panic")
+			})),
 			request: http.BuildRequest().Build(),
 			expectedError: `Expected: GET /
     with body
@@ -195,10 +199,8 @@ Error: could not match body: match panic
 `,
 		},
 		{
-			scenario: "match error",
-			expect: func(r *request.Request) {
-				r.WithBody(payload)
-			},
+			scenario:    "match error",
+			bodyMatcher: matcher.Body(payload),
 			request: http.BuildRequest().
 				WithBody(payload).
 				WithBodyReadError(errors.New(`read error`)).
@@ -213,10 +215,8 @@ Error: could not match body: read error
 `,
 		},
 		{
-			scenario: "mismatched",
-			expect: func(r *request.Request) {
-				r.WithBody(`{"id":1}`)
-			},
+			scenario:    "mismatched",
+			bodyMatcher: matcher.Body(`{"id":1}`),
 			request: http.BuildRequest().
 				WithBody(payload).
 				Build(),
@@ -230,10 +230,8 @@ Error: expected request body: {"id":1}, received: {"id":42}
 `,
 		},
 		{
-			scenario: "mismatched with empty expectation",
-			expect: func(r *request.Request) {
-				r.WithBody(``)
-			},
+			scenario:    "mismatched with empty expectation",
+			bodyMatcher: matcher.Body(``),
 			request: http.BuildRequest().
 				WithBody(payload).
 				Build(),
@@ -245,13 +243,11 @@ Error: body does not match expectation, received: {"id":42}
 `,
 		},
 		{
-			scenario: "matched",
+			scenario:    "matched",
+			bodyMatcher: matcher.Body(matcher.JSON(`{"id": 42}`)),
 			request: http.BuildRequest().
 				WithBody(payload).
 				Build(),
-			expect: func(r *request.Request) {
-				r.WithBody(matcher.JSON(`{"id": 42}`))
-			},
 		},
 	}
 
@@ -260,11 +256,14 @@ Error: body does not match expectation, received: {"id":42}
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			expected := request.NewRequest(&sync.Mutex{}, http.MethodGet, "/")
+			expected := plannermock.MockExpectation(func(e *plannermock.Expectation) {
+				e.On("BodyMatcher").Return(tc.bodyMatcher)
+				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
+				e.On("Method").Maybe().Return(http.MethodGet)
+				e.On("HeaderMatcher").Maybe().Return(nil)
+			})(t)
 
-			tc.expect(expected)
-
-			err := MatchBody(expected, tc.request)
+			err := planner.MatchBody(expected, tc.request)
 
 			if tc.expectedError == "" {
 				assert.NoError(t, err)

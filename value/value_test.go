@@ -18,7 +18,7 @@ func TestString_Success(t *testing.T) {
 
 	testCases := []struct {
 		scenario string
-		input    interface{}
+		input    any
 		expected string
 	}{
 		{

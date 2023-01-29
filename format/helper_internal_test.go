@@ -13,7 +13,7 @@ func TestIsNil(t *testing.T) {
 
 	testCases := []struct {
 		scenario string
-		value    interface{}
+		value    any
 		expected bool
 	}{
 		{

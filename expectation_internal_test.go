@@ -1,4 +1,4 @@
-package request
+package httpmock
 
 import (
 	"errors"
@@ -13,40 +13,40 @@ import (
 	"go.nhat.io/httpmock/mock/http"
 )
 
-func TestRequest_WithHeader(t *testing.T) {
+func TestRequestExpectation_WithHeader(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}, requestHeader: matcher.HeaderMatcher{}}
+	r := &requestExpectation{locker: &sync.Mutex{}, requestHeaderMatcher: matcher.HeaderMatcher{}}
 	r.WithHeader("foo", "bar")
 
-	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar")}, r.requestHeader)
+	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar")}, r.requestHeaderMatcher)
 
 	r.WithHeader("john", "doe")
 
-	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar"), "john": matcher.Exact("doe")}, r.requestHeader)
+	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar"), "john": matcher.Exact("doe")}, r.requestHeaderMatcher)
 }
 
-func TestRequest_WithHeaders(t *testing.T) {
+func TestRequestExpectation_WithHeaders(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}}
-	r.WithHeaders(map[string]interface{}{"foo": "bar"})
+	e := newRequestExpectation(MethodGet, "/")
+	e.WithHeaders(map[string]any{"foo": "bar"})
 
-	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar")}, r.requestHeader)
+	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar")}, e.requestHeaderMatcher)
 
-	r.WithHeader("john", "doe")
+	e.WithHeader("john", "doe")
 
-	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar"), "john": matcher.Exact("doe")}, r.requestHeader)
+	assert.Equal(t, matcher.HeaderMatcher{"foo": matcher.Exact("bar"), "john": matcher.Exact("doe")}, e.requestHeaderMatcher)
 }
 
-func TestRequest_WithBody(t *testing.T) {
+func TestRequestExpectation_WithBody(t *testing.T) {
 	t.Parallel()
 
 	const body = `{"id":42}`
 
 	testCases := []struct {
 		scenario       string
-		expect         interface{}
+		expect         any
 		body           string
 		expectedResult bool
 		expectedError  string
@@ -104,11 +104,11 @@ func TestRequest_WithBody(t *testing.T) {
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			r := &Request{locker: &sync.Mutex{}}
+			e := newRequestExpectation(MethodGet, "/")
 
-			r.WithBody(tc.expect)
+			e.WithBody(tc.expect)
 
-			matched, err := r.requestBody.Match(http.BuildRequest().
+			matched, err := e.requestBodyMatcher.Match(http.BuildRequest().
 				WithBody(tc.body).Build(),
 			)
 
@@ -123,25 +123,25 @@ func TestRequest_WithBody(t *testing.T) {
 	}
 }
 
-func TestRequest_WithBody_Panic(t *testing.T) {
+func TestRequestExpectation_WithBody_Panic(t *testing.T) {
 	t.Parallel()
 
 	expected := `unsupported data type`
 
 	assert.PanicsWithError(t, expected, func() {
-		(&Request{locker: &sync.Mutex{}}).
+		(&requestExpectation{locker: &sync.Mutex{}}).
 			WithBody(42)
 	})
 }
 
-func TestRequest_WithBodyf(t *testing.T) {
+func TestRequestExpectation_WithBodyf(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}}
+	r := &requestExpectation{locker: &sync.Mutex{}}
 
 	r.WithBodyf("hello %s", "john")
 
-	matched, err := r.requestBody.Match(http.BuildRequest().
+	matched, err := r.requestBodyMatcher.Match(http.BuildRequest().
 		WithBody(`hello john`).Build(),
 	)
 
@@ -149,12 +149,12 @@ func TestRequest_WithBodyf(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRequest_WithBodyJSON(t *testing.T) {
+func TestRequestExpectation_WithBodyJSON(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
 		scenario    string
-		body        interface{}
+		body        any
 		expectPanic bool
 	}{
 		{
@@ -173,7 +173,7 @@ func TestRequest_WithBodyJSON(t *testing.T) {
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			r := &Request{locker: &sync.Mutex{}}
+			r := &requestExpectation{locker: &sync.Mutex{}}
 
 			if tc.expectPanic {
 				assert.Panics(t, func() {
@@ -182,7 +182,7 @@ func TestRequest_WithBodyJSON(t *testing.T) {
 			} else {
 				r.WithBodyJSON(tc.body)
 
-				matched, err := r.requestBody.Match(http.BuildRequest().
+				matched, err := r.requestBodyMatcher.Match(http.BuildRequest().
 					WithBody(`{"foo":"bar"}`).Build(),
 				)
 
@@ -193,19 +193,19 @@ func TestRequest_WithBodyJSON(t *testing.T) {
 	}
 }
 
-func TestRequest_ReturnCode(t *testing.T) {
+func TestRequestExpectation_ReturnCode(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}}
-	r.ReturnCode(http.StatusCreated)
+	r := &requestExpectation{locker: &sync.Mutex{}}
+	r.ReturnCode(StatusCreated)
 
-	assert.Equal(t, http.StatusCreated, r.responseCode)
+	assert.Equal(t, StatusCreated, r.responseCode)
 }
 
-func TestRequest_ReturnHeader(t *testing.T) {
+func TestRequestExpectation_ReturnHeader(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}, responseHeader: map[string]string{}}
+	r := &requestExpectation{locker: &sync.Mutex{}, responseHeader: map[string]string{}}
 	r.ReturnHeader("foo", "bar")
 
 	assert.Equal(t, map[string]string{"foo": "bar"}, r.responseHeader)
@@ -215,10 +215,10 @@ func TestRequest_ReturnHeader(t *testing.T) {
 	assert.Equal(t, map[string]string{"foo": "bar", "john": "doe"}, r.responseHeader)
 }
 
-func TestRequest_ReturnHeaders(t *testing.T) {
+func TestRequestExpectation_ReturnHeaders(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}}
+	r := &requestExpectation{locker: &sync.Mutex{}}
 	r.ReturnHeaders(map[string]string{"foo": "bar"})
 
 	assert.Equal(t, map[string]string{"foo": "bar"}, r.responseHeader)
@@ -228,14 +228,14 @@ func TestRequest_ReturnHeaders(t *testing.T) {
 	assert.Equal(t, map[string]string{"foo": "bar", "john": "doe"}, r.responseHeader)
 }
 
-func TestRequest_Return(t *testing.T) {
+func TestRequestExpectation_Return(t *testing.T) {
 	t.Parallel()
 
 	t.Helper()
 
 	testCases := []struct {
 		scenario     string
-		body         interface{}
+		body         any
 		expectedBody []byte
 		expectPanic  bool
 	}{
@@ -266,24 +266,24 @@ func TestRequest_Return(t *testing.T) {
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
-			r := &Request{locker: &sync.Mutex{}}
+			e := newRequestExpectation(MethodGet, "/")
 
 			if tc.expectPanic {
 				assert.Panics(t, func() {
-					r.Return(tc.body)
+					e.Return(tc.body)
 				})
 			} else {
-				r.ReturnCode(http.StatusOK).
+				e.ReturnCode(StatusOK).
 					Return(tc.body)
 
 				w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-					w.On("WriteHeader", http.StatusOK)
+					w.On("WriteHeader", StatusOK)
 
 					w.On("Write", tc.expectedBody).
 						Return(0, nil)
 				})(t)
 
-				err := r.handle(w, nil, nil)
+				err := e.Handle(w, http.BuildRequest().Build(), nil)
 
 				assert.NoError(t, err)
 			}
@@ -291,72 +291,72 @@ func TestRequest_Return(t *testing.T) {
 	}
 }
 
-func TestRequest_Returnf(t *testing.T) {
+func TestRequestExpectation_Returnf(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", http.StatusOK)
+		w.On("WriteHeader", StatusOK)
 
 		w.On("Write", []byte(`hello john`)).
 			Return(0, nil)
 	})(t)
 
-	r := &Request{locker: &sync.Mutex{}}
+	e := newRequestExpectation(MethodGet, "/")
 
-	r.ReturnCode(http.StatusOK).
+	e.ReturnCode(StatusOK).
 		Returnf("hello %s", "john")
 
-	err := r.handle(w, nil, nil)
+	err := e.Handle(w, http.BuildRequest().Build(), nil)
 
 	assert.NoError(t, err)
 }
 
-func TestRequest_ReturnJSON(t *testing.T) {
+func TestRequestExpectation_ReturnJSON(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", http.StatusOK)
+		w.On("WriteHeader", StatusOK)
 
 		w.On("Write", []byte(`{"foo":"bar"}`)).
 			Return(0, nil)
 	})(t)
 
-	r := &Request{locker: &sync.Mutex{}}
+	e := newRequestExpectation(MethodGet, "/")
 
-	r.ReturnCode(http.StatusOK).
+	e.ReturnCode(StatusOK).
 		ReturnJSON(map[string]string{"foo": "bar"})
 
-	err := r.handle(w, nil, nil)
+	err := e.Handle(w, http.BuildRequest().Build(), nil)
 
 	assert.NoError(t, err)
 }
 
-func TestRequest_ReturnFile(t *testing.T) {
+func TestRequestExpectation_ReturnFile(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", http.StatusOK)
+		w.On("WriteHeader", StatusOK)
 
 		w.On("Write", []byte("hello world!\n")).
 			Return(0, nil)
 	})(t)
 
-	r := &Request{locker: &sync.Mutex{}}
+	e := newRequestExpectation(MethodGet, "/")
 
 	// File does not exist.
 	assert.Panics(t, func() {
-		r.ReturnFile("foo")
+		e.ReturnFile("foo")
 	})
 
-	r.ReturnCode(http.StatusOK).
-		ReturnFile("../resources/fixtures/response.txt")
+	e.ReturnCode(StatusOK).
+		ReturnFile("resources/fixtures/response.txt")
 
-	err := r.handle(w, nil, nil)
+	err := e.Handle(w, http.BuildRequest().Build(), nil)
 
 	assert.NoError(t, err)
 }
 
-func TestRequest_Handle_Success(t *testing.T) {
+func TestRequestExpectation_Handle_Success(t *testing.T) {
 	t.Parallel()
 
 	responseHeader := http.Header{}
@@ -369,9 +369,9 @@ func TestRequest_Handle_Success(t *testing.T) {
 			Return(9, nil)
 	})(t)
 
-	r := &Request{locker: &sync.Mutex{}}
+	e := newRequestExpectation(MethodGet, "/")
 
-	r.ReturnCode(http.StatusOK).
+	e.ReturnCode(StatusOK).
 		ReturnHeader("Content-Type", "application/json").
 		ReturnHeader("Content-Length", "9").
 		Return(`{"id":42}`)
@@ -380,7 +380,7 @@ func TestRequest_Handle_Success(t *testing.T) {
 		"Content-Type": "text/plain",
 	}
 
-	err := r.handle(w, nil, defaultHeaders)
+	err := e.Handle(w, http.BuildRequest().Build(), defaultHeaders)
 
 	expectedHeader := http.Header{
 		"Content-Type":   {"application/json"},
@@ -391,7 +391,7 @@ func TestRequest_Handle_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestRequest_Handle_RunError(t *testing.T) {
+func TestRequestExpectation_Handle_RunError(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
@@ -401,20 +401,20 @@ func TestRequest_Handle_RunError(t *testing.T) {
 			Return(0, nil)
 	})(t)
 
-	r := &Request{locker: &sync.Mutex{}}
+	e := newRequestExpectation(MethodGet, "/")
 
-	r.ReturnCode(http.StatusOK).
+	e.ReturnCode(StatusOK).
 		Run(func(*http.Request) ([]byte, error) {
 			return nil, errors.New("run error")
 		})
 
-	actual := r.handle(w, nil, nil)
+	actual := e.Handle(w, http.BuildRequest().Build(), nil)
 	expected := errors.New("run error")
 
 	assert.Equal(t, expected, actual)
 }
 
-func TestRequest_Handle_WriteError(t *testing.T) {
+func TestRequestExpectation_Handle_WriteError(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
@@ -424,91 +424,70 @@ func TestRequest_Handle_WriteError(t *testing.T) {
 			Return(0, errors.New("write error"))
 	})(t)
 
-	r := NewRequest(&sync.Mutex{}, http.MethodGet, "/")
+	e := newRequestExpectation(MethodGet, "/")
 
-	r.ReturnCode(http.StatusOK)
+	e.ReturnCode(StatusOK)
 
-	actual := r.handle(w, nil, nil)
+	actual := e.Handle(w, http.BuildRequest().Build(), nil)
 	expected := errors.New("write error")
 
 	assert.Equal(t, expected, actual)
 }
 
-func TestRequest_Once(t *testing.T) {
+func TestRequestExpectation_Once(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}}
-	r.Once()
+	e := newRequestExpectation(MethodGet, "/")
+	e.Once()
 
-	assert.Equal(t, 1, r.repeatability)
+	assert.Equal(t, uint(1), e.RemainTimes())
 }
 
-func TestRequest_Twice(t *testing.T) {
+func TestRequestExpectation_Twice(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}}
-	r.Twice()
+	e := newRequestExpectation(MethodGet, "/")
+	e.Twice()
 
-	assert.Equal(t, 2, r.repeatability)
+	assert.Equal(t, uint(2), e.RemainTimes())
 }
 
-func TestRequest_Times(t *testing.T) {
+func TestRequestExpectation_Times(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}}
-	r.Times(20)
+	e := newRequestExpectation(MethodGet, "/")
+	e.Times(20)
 
-	assert.Equal(t, 20, r.repeatability)
+	assert.Equal(t, uint(20), e.RemainTimes())
 }
 
-func TestRequest_UnlimitedTimes(t *testing.T) {
+func TestRequestExpectation_UnlimitedTimes(t *testing.T) {
 	t.Parallel()
 
-	r := &Request{locker: &sync.Mutex{}, repeatability: 1}
-	r.UnlimitedTimes()
+	e := newRequestExpectation(MethodGet, "/")
+	e.UnlimitedTimes()
 
-	assert.Equal(t, 0, r.repeatability)
+	assert.Equal(t, uint(0), e.RemainTimes())
 }
 
-func TestRequest_WaitUntil(t *testing.T) {
-	t.Parallel()
-
-	r := &Request{locker: &sync.Mutex{}}
-	ch := time.After(time.Second)
-
-	r.WaitUntil(ch)
-
-	assert.Equal(t, ch, r.waitFor)
-}
-
-func TestRequest_WaitTime(t *testing.T) {
-	t.Parallel()
-
-	r := &Request{locker: &sync.Mutex{}}
-
-	r.After(time.Second)
-
-	assert.Equal(t, time.Second, r.waitTime)
-}
-
-func TestRequest_Wait(t *testing.T) {
+func TestRequestExpectation_Wait(t *testing.T) {
 	t.Parallel()
 
 	duration := 50 * time.Millisecond
 
 	testCases := []struct {
 		scenario string
-		mock     func(*Request)
+		mock     func(e *requestExpectation)
 	}{
 		{
 			scenario: "chan",
-			mock: func(r *Request) {
+			mock: func(r *requestExpectation) {
 				r.WaitUntil(time.After(duration))
 			},
 		},
 		{
 			scenario: "sleep",
-			mock: func(r *Request) {
+			mock: func(r *requestExpectation) {
 				r.After(duration)
 			},
 		},
@@ -526,14 +505,13 @@ func TestRequest_Wait(t *testing.T) {
 					Return(0, nil)
 			})(t)
 
-			r := NewRequest(&sync.Mutex{}, http.MethodGet, "/").
-				ReturnCode(200)
+			e := newRequestExpectation(MethodGet, "/")
 
-			tc.mock(r)
+			tc.mock(e)
 
 			startTime := time.Now()
 
-			err := r.handle(w, nil, nil)
+			err := e.Handle(w, http.BuildRequest().Build(), nil)
 
 			endTime := time.Now()
 
@@ -541,4 +519,25 @@ func TestRequest_Wait(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestMergeHeaders(t *testing.T) {
+	t.Parallel()
+
+	headers := Header{
+		"Authorization": "Bearer token",
+	}
+
+	defaultHeaders := Header{
+		"Authorization": "Bearer foobar",
+		"Content-Type":  "application/json",
+	}
+
+	actual := mergeHeaders(headers, defaultHeaders)
+	expected := Header{
+		"Authorization": "Bearer token",
+		"Content-Type":  "application/json",
+	}
+
+	assert.Equal(t, expected, actual)
 }
