@@ -1,7 +1,6 @@
 package httpmock
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"regexp"
 	"sync"
 	"time"
+
+	"go.nhat.io/wait"
 
 	"go.nhat.io/httpmock/matcher"
 	"go.nhat.io/httpmock/must"
@@ -146,6 +147,7 @@ var (
 // requestExpectation is an expectation.
 type requestExpectation struct {
 	locker sync.Locker
+	waiter wait.Waiter
 
 	// requestMethod is the expected HTTP requestMethod of the given request.
 	requestMethod string
@@ -166,8 +168,6 @@ type requestExpectation struct {
 
 	fulfilledTimes uint
 	repeatTimes    uint
-
-	delayer delayer
 }
 
 func (e *requestExpectation) lock() {
@@ -458,7 +458,7 @@ func (e *requestExpectation) WaitUntil(w <-chan time.Time) Expectation {
 	e.lock()
 	defer e.unlock()
 
-	e.delayer = waitForSignal(w)
+	e.waiter = wait.ForSignal(w)
 
 	return e
 }
@@ -474,7 +474,7 @@ func (e *requestExpectation) After(d time.Duration) Expectation {
 	e.lock()
 	defer e.unlock()
 
-	e.delayer = waitForDuration(d)
+	e.waiter = wait.ForDuration(d)
 
 	return e
 }
@@ -484,7 +484,7 @@ func (e *requestExpectation) Handle(w http.ResponseWriter, req *http.Request, de
 	e.lock()
 	defer e.unlock()
 
-	if err := e.delayer.Delay(req.Context()); err != nil {
+	if err := e.waiter.Wait(req.Context()); err != nil {
 		return err
 	}
 
@@ -506,40 +506,6 @@ func (e *requestExpectation) Handle(w http.ResponseWriter, req *http.Request, de
 	return err
 }
 
-type delayer interface {
-	Delay(ctx context.Context) error
-}
-
-type noWait struct{}
-
-func (noWait) Delay(ctx context.Context) error {
-	return ctx.Err()
-}
-
-type waitForSignal <-chan time.Time
-
-func (t waitForSignal) Delay(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-
-	case <-t:
-		return nil
-	}
-}
-
-type waitForDuration time.Duration
-
-func (d waitForDuration) Delay(ctx context.Context) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-
-	case <-time.After(time.Duration(d)):
-		return nil
-	}
-}
-
 // newRequestExpectation creates a new request expectation.
 func newRequestExpectation(method string, requestURI any) *requestExpectation {
 	return &requestExpectation{
@@ -548,7 +514,7 @@ func newRequestExpectation(method string, requestURI any) *requestExpectation {
 		responseCode:      http.StatusOK,
 		requestURIMatcher: matcher.Match(requestURI),
 		repeatTimes:       0,
-		delayer:           noWait{},
+		waiter:            wait.NoWait,
 		handle: func(r *http.Request) ([]byte, error) {
 			return nil, nil
 		},
