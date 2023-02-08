@@ -133,6 +133,11 @@ type Expectation interface {
 	After(d time.Duration) Expectation
 }
 
+// ExpectationHandler handles the expectation.
+type ExpectationHandler interface {
+	Handle(http.ResponseWriter, *http.Request, map[string]string) error
+}
+
 var (
 	_ Expectation         = (*requestExpectation)(nil)
 	_ planner.Expectation = (*requestExpectation)(nil)
@@ -162,7 +167,7 @@ type requestExpectation struct {
 	fulfilledTimes uint
 	repeatTimes    uint
 
-	delay delayer
+	delayer delayer
 }
 
 func (e *requestExpectation) lock() {
@@ -453,7 +458,7 @@ func (e *requestExpectation) WaitUntil(w <-chan time.Time) Expectation {
 	e.lock()
 	defer e.unlock()
 
-	e.delay = waitForSignal(w)
+	e.delayer = waitForSignal(w)
 
 	return e
 }
@@ -469,7 +474,7 @@ func (e *requestExpectation) After(d time.Duration) Expectation {
 	e.lock()
 	defer e.unlock()
 
-	e.delay = waitForDuration(d)
+	e.delayer = waitForDuration(d)
 
 	return e
 }
@@ -479,7 +484,7 @@ func (e *requestExpectation) Handle(w http.ResponseWriter, req *http.Request, de
 	e.lock()
 	defer e.unlock()
 
-	if err := e.delay(req.Context()); err != nil {
+	if err := e.delayer.Delay(req.Context()); err != nil {
 		return err
 	}
 
@@ -501,35 +506,37 @@ func (e *requestExpectation) Handle(w http.ResponseWriter, req *http.Request, de
 	return err
 }
 
-type delayer func(ctx context.Context) error
+type delayer interface {
+	Delay(ctx context.Context) error
+}
 
-func noWait() delayer {
-	return func(ctx context.Context) error {
+type noWait struct{}
+
+func (noWait) Delay(ctx context.Context) error {
+	return ctx.Err()
+}
+
+type waitForSignal <-chan time.Time
+
+func (t waitForSignal) Delay(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
 		return ctx.Err()
+
+	case <-t:
+		return nil
 	}
 }
 
-func waitForSignal(c <-chan time.Time) delayer {
-	return func(ctx context.Context) error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
+type waitForDuration time.Duration
 
-		case <-c:
-			return nil
-		}
-	}
-}
+func (d waitForDuration) Delay(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
 
-func waitForDuration(d time.Duration) delayer {
-	return func(ctx context.Context) error {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-
-		case <-time.After(d):
-			return nil
-		}
+	case <-time.After(time.Duration(d)):
+		return nil
 	}
 }
 
@@ -541,7 +548,7 @@ func newRequestExpectation(method string, requestURI any) *requestExpectation {
 		responseCode:      http.StatusOK,
 		requestURIMatcher: matcher.Match(requestURI),
 		repeatTimes:       0,
-		delay:             noWait(),
+		delayer:           noWait{},
 		handle: func(r *http.Request) ([]byte, error) {
 			return nil, nil
 		},
