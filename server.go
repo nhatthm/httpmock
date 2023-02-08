@@ -238,9 +238,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	s.Requests = append(s.Requests, expected)
 
-	if h, ok := expected.(interface {
-		Handle(http.ResponseWriter, *http.Request, map[string]string) error
-	}); ok {
+	if h, ok := expected.(ExpectationHandler); ok {
 		err = h.Handle(w, r, s.defaultResponseHeader)
 		require.NoError(s.test, err)
 
