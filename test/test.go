@@ -4,7 +4,7 @@ package test
 type T interface {
 	Errorf(format string, args ...any)
 	FailNow()
-	Cleanup(func())
+	Cleanup(f func())
 }
 
 type noOp struct{}

@@ -136,7 +136,7 @@ type Expectation interface {
 
 // ExpectationHandler handles the expectation.
 type ExpectationHandler interface {
-	Handle(http.ResponseWriter, *http.Request, map[string]string) error
+	Handle(w http.ResponseWriter, r *http.Request, defaultHeaders map[string]string) error
 }
 
 var (
