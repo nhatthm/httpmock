@@ -31,7 +31,7 @@ func TestString_Success(t *testing.T) {
 		},
 		{
 			scenario: "fmt.Stringer",
-			input:    bytes.NewBuffer([]byte(expected)),
+			input:    bytes.NewBufferString(expected),
 		},
 	}
 
