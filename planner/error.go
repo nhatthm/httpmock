@@ -31,7 +31,7 @@ func (e Error) formatExpected(w io.Writer) {
 func (e Error) formatActual(w io.Writer) {
 	body, err := value.GetBody(e.actual)
 	if err != nil {
-		body = []byte(fmt.Sprintf("could not read request body: %s", err.Error()))
+		body = []byte("could not read request body: " + err.Error())
 	}
 
 	format.HTTPRequest(w, e.actual.Method, e.actual.RequestURI, e.actual.Header, body)

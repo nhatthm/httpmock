@@ -61,7 +61,7 @@ func NewRequest(locker sync.Locker, method string, requestURI any) *Request {
 		repeatability: 0,
 		waitFor:       nil,
 
-		run: func(r *http.Request) ([]byte, error) {
+		run: func(*http.Request) ([]byte, error) {
 			return nil, nil
 		},
 	}
@@ -259,7 +259,7 @@ func (r *Request) handle(w http.ResponseWriter, req *http.Request, defaultHeader
 
 	body, err := r.run(req)
 	if err != nil {
-		_ = FailResponse(w, err.Error()) // nolint: errcheck
+		_ = FailResponse(w, err.Error()) //nolint: errcheck,govet
 
 		return err
 	}

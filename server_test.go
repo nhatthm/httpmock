@@ -36,7 +36,7 @@ func TestServer(t *testing.T) {
 	}{
 		{
 			scenario:        "no expectation",
-			mockServer:      func(s *Server) {},
+			mockServer:      func(*Server) {},
 			expectedCode:    http.StatusInternalServerError,
 			expectedHeaders: Header{},
 			expectedBody:    `unexpected request received: GET /`,
@@ -44,7 +44,7 @@ func TestServer(t *testing.T) {
 		},
 		{
 			scenario:        "no expectation with body",
-			mockServer:      func(s *Server) {},
+			mockServer:      func(*Server) {},
 			body:            []byte(`foobar`),
 			expectedCode:    http.StatusInternalServerError,
 			expectedHeaders: Header{},

@@ -196,7 +196,7 @@ func (s *Server) ExpectationsWereMet() error {
 			expected.HeaderMatcher(),
 			expected.BodyMatcher(),
 			int(calls),
-			int(repeat),
+			int(repeat), //nolint: gosec
 		)
 
 		count++
@@ -228,7 +228,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	expected, err := s.planner.Plan(r)
 	if err != nil {
-		s.failResponsef(w, err.Error())
+		s.failResponsef(w, err.Error()) //nolint: govet
 
 		return
 	}
@@ -252,7 +252,7 @@ func (s *Server) failResponsef(w http.ResponseWriter, format string, args ...any
 	body := fmt.Sprintf(format, args...)
 	s.test.Errorf(body)
 
-	err := FailResponse(w, body)
+	err := FailResponse(w, body) //nolint: govet
 
 	require.NoError(s.test, err, "could not write response: %q", body)
 }
