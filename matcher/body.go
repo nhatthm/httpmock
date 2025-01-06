@@ -13,7 +13,7 @@ const initActual = "<could not decode>"
 var _ matcher.Matcher = (*BodyMatcher)(nil)
 
 // BodyMatcher matches a body of a request.
-type BodyMatcher struct {
+type BodyMatcher struct { //nolint: recvcheck
 	matcher matcher.Matcher
 	actual  string
 }
@@ -27,7 +27,7 @@ func (m *BodyMatcher) Matcher() matcher.Matcher {
 func (m *BodyMatcher) Match(in any) (bool, error) {
 	m.actual = initActual
 
-	actual, err := value.GetBody(in.(*http.Request))
+	actual, err := value.GetBody(in.(*http.Request)) //nolint: errcheck
 	if err != nil {
 		return false, err
 	}

@@ -103,7 +103,7 @@ func ExampleMockServer_alwaysFailPlanner() {
 		s.WithPlanner(p)
 
 		s.ExpectGet("/hi").
-			Run(func(r *http.Request) ([]byte, error) {
+			Run(func(*http.Request) ([]byte, error) {
 				panic(`this never happens`)
 			})
 	})

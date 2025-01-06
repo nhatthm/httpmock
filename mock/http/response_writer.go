@@ -33,7 +33,7 @@ func (r *ResponseWriter) Header() http.Header {
 		return v
 	}
 
-	return result.(http.Header)
+	return result.(http.Header) //nolint: errcheck
 }
 
 // Write satisfies http.ResponseWriter interface.

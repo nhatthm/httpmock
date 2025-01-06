@@ -99,7 +99,7 @@ func (b *RequestBuilder) WithHeader(key, value string) *RequestBuilder {
 // WithBody sets the request body.
 func (b *RequestBuilder) WithBody(body string) *RequestBuilder {
 	result := b.clone()
-	result.r.Body.(*reader).upstream = strings.NewReader(body)
+	result.r.Body.(*reader).upstream = strings.NewReader(body) //nolint: errcheck
 
 	return result
 }
@@ -107,7 +107,7 @@ func (b *RequestBuilder) WithBody(body string) *RequestBuilder {
 // WithBodyReadError sets the request body that returns an error while reading.
 func (b *RequestBuilder) WithBodyReadError(err error) *RequestBuilder {
 	result := b.clone()
-	result.r.Body.(*reader).readErr = err
+	result.r.Body.(*reader).readErr = err //nolint: errcheck
 
 	return result
 }
@@ -115,7 +115,7 @@ func (b *RequestBuilder) WithBodyReadError(err error) *RequestBuilder {
 // WithBodyCloseError sets the request body that returns an error while closing.
 func (b *RequestBuilder) WithBodyCloseError(err error) *RequestBuilder {
 	result := b.clone()
-	result.r.Body.(*reader).closeErr = err
+	result.r.Body.(*reader).closeErr = err //nolint: errcheck
 
 	return result
 }

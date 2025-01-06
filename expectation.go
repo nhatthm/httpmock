@@ -490,7 +490,7 @@ func (e *requestExpectation) Handle(w http.ResponseWriter, req *http.Request, de
 
 	body, err := e.handle(req)
 	if err != nil {
-		_ = FailResponse(w, err.Error()) // nolint: errcheck
+		_ = FailResponse(w, err.Error()) //nolint: errcheck,govet
 
 		return err
 	}
@@ -515,7 +515,7 @@ func newRequestExpectation(method string, requestURI any) *requestExpectation {
 		requestURIMatcher: matcher.Match(requestURI),
 		repeatTimes:       0,
 		waiter:            wait.NoWait,
-		handle: func(r *http.Request) ([]byte, error) {
+		handle: func(*http.Request) ([]byte, error) {
 			return nil, nil
 		},
 	}

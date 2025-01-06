@@ -17,7 +17,7 @@ type TestingT struct {
 }
 
 func (t *TestingT) Errorf(format string, args ...any) {
-	_, _ = fmt.Fprintf(t, format, args...)
+	_, _ = fmt.Fprintf(t, format, args...) //nolint: errcheck
 }
 
 func (t *TestingT) FailNow() {

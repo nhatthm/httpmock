@@ -45,16 +45,16 @@ func HTTPRequest(w io.Writer, method, uri string, header http.Header, body []byt
 }
 
 func formatRequestTimes(w io.Writer, method string, uri any, header map[string]any, body any, totalCalls, remainingCalls int) {
-	_, _ = fmt.Fprintf(w, "%s %s", method, formatValueInline(uri))
+	_, _ = fmt.Fprintf(w, "%s %s", method, formatValueInline(uri)) //nolint: errcheck
 
 	if remainingCalls > 0 && (totalCalls != 0 || remainingCalls != 1) {
-		_, _ = fmt.Fprintf(w, " (called: %d time(s), remaining: %d time(s))", totalCalls, remainingCalls)
+		_, _ = fmt.Fprintf(w, " (called: %d time(s), remaining: %d time(s))", totalCalls, remainingCalls) //nolint: errcheck
 	}
 
-	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w) //nolint: errcheck
 
 	if len(header) > 0 {
-		_, _ = fmt.Fprintf(w, "%swith header:\n", indent)
+		_, _ = fmt.Fprintf(w, "%swith header:\n", indent) //nolint: errcheck
 
 		keys := make([]string, len(header))
 		i := 0
@@ -67,7 +67,7 @@ func formatRequestTimes(w io.Writer, method string, uri any, header map[string]a
 		sort.Strings(keys)
 
 		for _, key := range keys {
-			_, _ = fmt.Fprintf(w, "%s%s%s: %s\n", indent, indent, key, formatValueInline(header[key]))
+			_, _ = fmt.Fprintf(w, "%s%s%s: %s\n", indent, indent, key, formatValueInline(header[key])) //nolint: errcheck
 		}
 	}
 
@@ -75,8 +75,8 @@ func formatRequestTimes(w io.Writer, method string, uri any, header map[string]a
 		bodyStr := formatValue(body)
 
 		if bodyStr != "" {
-			_, _ = fmt.Fprintf(w, "%swith body%s\n", indent, formatType(body))
-			_, _ = fmt.Fprintf(w, "%s%s%s\n", indent, indent, bodyStr)
+			_, _ = fmt.Fprintf(w, "%swith body%s\n", indent, formatType(body)) //nolint: errcheck
+			_, _ = fmt.Fprintf(w, "%s%s%s\n", indent, indent, bodyStr)         //nolint: errcheck
 		}
 	}
 }
