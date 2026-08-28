@@ -14,7 +14,7 @@ func isNil(v any) bool {
 	case reflect.Chan,
 		reflect.Func,
 		reflect.Map,
-		reflect.Ptr,
+		reflect.Pointer,
 		reflect.UnsafePointer,
 		reflect.Interface,
 		reflect.Slice:
