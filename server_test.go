@@ -155,7 +155,6 @@ Error: expected request body: {"foo":"bar"}, received: {"foo":"baz"}
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
@@ -425,7 +424,6 @@ func TestServer_Wait(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
@@ -569,8 +567,7 @@ func TestServer_ResetExpectations(t *testing.T) {
 	assert.NoError(t, s.ExpectationsWereMet())
 }
 
-// nolint:thelper // It is called in DoRequestWithTimeout.
-func doRequest(
+func doRequest( //nolint: thelper // It is called in DoRequestWithTimeout.
 	t *testing.T,
 	baseURL string,
 	method, uri string,

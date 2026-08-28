@@ -20,9 +20,7 @@ import (
 )
 
 // Expectation sets the expectations for a http request.
-//
-// nolint: interfacebloat
-type Expectation interface {
+type Expectation interface { //nolint: interfacebloat
 	// WithHeader sets an expected header of the given request.
 	//
 	//	Server.Expect(httpmock.MethodGet, "/path").
@@ -235,9 +233,7 @@ func (e *requestExpectation) FulfilledTimes() uint {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithHeader("foo", "bar")
-//
-//nolint:unparam
-func (e *requestExpectation) WithHeader(header string, val any) Expectation {
+func (e *requestExpectation) WithHeader(header string, val any) Expectation { //nolint: unparam
 	e.lock()
 	defer e.unlock()
 
@@ -287,9 +283,7 @@ func (e *requestExpectation) WithBodyf(format string, args ...any) Expectation {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithBodyJSON(map[string]string{"foo": "bar"})
-//
-// nolint:unparam
-func (e *requestExpectation) WithBodyJSON(v any) Expectation {
+func (e *requestExpectation) WithBodyJSON(v any) Expectation { //nolint: unparam
 	body, err := json.Marshal(v)
 	if err != nil {
 		panic(err)
@@ -375,16 +369,14 @@ func (e *requestExpectation) ReturnJSON(body any) Expectation {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		ReturnFile("resources/fixtures/response.txt")
-//
-// nolint:unparam
-func (e *requestExpectation) ReturnFile(filePath string) Expectation {
+func (e *requestExpectation) ReturnFile(filePath string) Expectation { //nolint: unparam
 	filePath = filepath.Join(".", filepath.Clean(filePath))
 
 	_, err := os.Stat(filePath)
 	must.NotFail(err)
 
 	return e.Run(func(*http.Request) ([]byte, error) {
-		// nolint:gosec // filePath is cleaned above.
+		//nolint: gosec // filePath is cleaned above.
 		return os.ReadFile(filePath)
 	})
 }
@@ -452,9 +444,7 @@ func (e *requestExpectation) Times(i uint) Expectation {
 //	Server.Expect(http.MethodGet, "/path").
 //		WaitUntil(time.After(time.Second)).
 //		Return("hello world!")
-//
-// nolint: unparam
-func (e *requestExpectation) WaitUntil(w <-chan time.Time) Expectation {
+func (e *requestExpectation) WaitUntil(w <-chan time.Time) Expectation { //nolint: unparam
 	e.lock()
 	defer e.unlock()
 
@@ -468,9 +458,7 @@ func (e *requestExpectation) WaitUntil(w <-chan time.Time) Expectation {
 //	Server.Expect(http.MethodGet, "/path").
 //		After(time.Second).
 //		Return("hello world!")
-//
-// nolint: unparam
-func (e *requestExpectation) After(d time.Duration) Expectation {
+func (e *requestExpectation) After(d time.Duration) Expectation { //nolint: unparam
 	e.lock()
 	defer e.unlock()
 

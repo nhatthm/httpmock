@@ -16,7 +16,7 @@ import (
 
 // Request is an expectation.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock.Expectation] instead.
 type Request struct {
 	locker sync.Locker
 
@@ -52,6 +52,8 @@ type Request struct {
 }
 
 // NewRequest creates a new request expectation.
+//
+// Deprecated: the package will be removed in the future.
 func NewRequest(locker sync.Locker, method string, requestURI any) *Request {
 	return &Request{
 		locker:        locker,
@@ -80,8 +82,8 @@ func (r *Request) unlock() {
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithHeader("foo", "bar")
 //
-//nolint:unparam
-func (r *Request) WithHeader(header string, value any) *Request {
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.WithHeader] instead.
+func (r *Request) WithHeader(header string, value any) *Request { //nolint: unparam
 	r.lock()
 	defer r.unlock()
 
@@ -98,6 +100,8 @@ func (r *Request) WithHeader(header string, value any) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithHeaders(map[string]any{"foo": "bar"})
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.WithHeaders] instead.
 func (r *Request) WithHeaders(headers map[string]any) *Request {
 	for header, value := range headers {
 		r.WithHeader(header, value)
@@ -110,6 +114,8 @@ func (r *Request) WithHeaders(headers map[string]any) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithBody("hello world!")
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.WithBody] instead.
 func (r *Request) WithBody(body any) *Request {
 	r.lock()
 	defer r.unlock()
@@ -123,6 +129,8 @@ func (r *Request) WithBody(body any) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithBodyf("hello %s", "john)
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.WithBodyf] instead.
 func (r *Request) WithBodyf(format string, args ...any) *Request {
 	return r.WithBody(fmt.Sprintf(format, args...))
 }
@@ -132,8 +140,8 @@ func (r *Request) WithBodyf(format string, args ...any) *Request {
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		WithBodyJSON(map[string]string{"foo": "bar"})
 //
-// nolint:unparam
-func (r *Request) WithBodyJSON(v any) *Request {
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.WithBodyJSON] instead.
+func (r *Request) WithBodyJSON(v any) *Request { //nolint: unparam
 	body, err := json.Marshal(v)
 	if err != nil {
 		panic(err)
@@ -146,6 +154,8 @@ func (r *Request) WithBodyJSON(v any) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		ReturnCode(httpmock.StatusBadRequest)
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.ReturnCode] instead.
 func (r *Request) ReturnCode(code int) *Request {
 	r.lock()
 	defer r.unlock()
@@ -159,6 +169,8 @@ func (r *Request) ReturnCode(code int) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		ReturnHeader("foo", "bar")
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.ReturnHeader] instead.
 func (r *Request) ReturnHeader(header, value string) *Request {
 	r.lock()
 	defer r.unlock()
@@ -176,6 +188,8 @@ func (r *Request) ReturnHeader(header, value string) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		ReturnHeaders(httpmock.Header{"foo": "bar"})
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.ReturnHeaders] instead.
 func (r *Request) ReturnHeaders(headers Header) *Request {
 	r.lock()
 	defer r.unlock()
@@ -189,6 +203,8 @@ func (r *Request) ReturnHeaders(headers Header) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		Return("hello world!")
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.Return] instead.
 func (r *Request) Return(v any) *Request {
 	body := []byte(value.String(v))
 
@@ -201,6 +217,8 @@ func (r *Request) Return(v any) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		Returnf("hello %s", "john")
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.Returnf] instead.
 func (r *Request) Returnf(format string, args ...any) *Request {
 	return r.Return(fmt.Sprintf(format, args...))
 }
@@ -209,6 +227,8 @@ func (r *Request) Returnf(format string, args ...any) *Request {
 //
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		ReturnJSON(map[string]string{"foo": "bar"})
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.ReturnJSON] instead.
 func (r *Request) ReturnJSON(body any) *Request {
 	return r.Run(func(*http.Request) ([]byte, error) {
 		return json.Marshal(body)
@@ -220,15 +240,15 @@ func (r *Request) ReturnJSON(body any) *Request {
 //	Server.Expect(httpmock.MethodGet, "/path").
 //		ReturnFile("resources/fixtures/response.txt")
 //
-// nolint:unparam
-func (r *Request) ReturnFile(filePath string) *Request {
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.ReturnFile] instead.
+func (r *Request) ReturnFile(filePath string) *Request { //nolint: unparam
 	filePath = filepath.Join(".", filepath.Clean(filePath))
 
 	_, err := os.Stat(filePath)
 	must.NotFail(err)
 
 	return r.Run(func(*http.Request) ([]byte, error) {
-		// nolint:gosec // filePath is cleaned above.
+		//nolint: gosec // filePath is cleaned above.
 		return os.ReadFile(filePath)
 	})
 }
@@ -239,6 +259,8 @@ func (r *Request) ReturnFile(filePath string) *Request {
 //			Run(func(*http.Request) ([]byte, error) {
 //				return []byte("hello world!"), nil
 //			})
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.Run] instead.
 func (r *Request) Run(handle func(r *http.Request) ([]byte, error)) *Request {
 	r.lock()
 	defer r.unlock()
@@ -280,6 +302,8 @@ func (r *Request) handle(w http.ResponseWriter, req *http.Request, defaultHeader
 //	Server.Expect(http.MethodGet, "/path").
 //		Return("hello world!").
 //		Once()
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.Once] instead.
 func (r *Request) Once() *Request {
 	return r.Times(1)
 }
@@ -289,6 +313,8 @@ func (r *Request) Once() *Request {
 //	Server.Expect(http.MethodGet, "/path").
 //		Return("hello world!").
 //		Twice()
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.Twice] instead.
 func (r *Request) Twice() *Request {
 	return r.Times(2)
 }
@@ -299,6 +325,8 @@ func (r *Request) Twice() *Request {
 //	Server.Expect(http.MethodGet, "/path").
 //		Return("hello world!").
 //		UnlimitedTimes()
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.UnlimitedTimes] instead.
 func (r *Request) UnlimitedTimes() *Request {
 	return r.Times(0)
 }
@@ -308,9 +336,12 @@ func (r *Request) UnlimitedTimes() *Request {
 //	Server.Expect(http.MethodGet, "/path").
 //		Return("hello world!").
 //		Times(5)
+//
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.Times] instead.
 func (r *Request) Times(i int) *Request {
 	r.lock()
 	defer r.unlock()
+
 	r.repeatability = i
 
 	return r
@@ -323,10 +354,11 @@ func (r *Request) Times(i int) *Request {
 //		WaitUntil(time.After(time.Second)).
 //		Return("hello world!")
 //
-// nolint: unparam
-func (r *Request) WaitUntil(w <-chan time.Time) *Request {
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.WaitUntil] instead.
+func (r *Request) WaitUntil(w <-chan time.Time) *Request { //nolint: unparam
 	r.lock()
 	defer r.unlock()
+
 	r.waitFor = w
 
 	return r
@@ -338,10 +370,11 @@ func (r *Request) WaitUntil(w <-chan time.Time) *Request {
 //		After(time.Second).
 //		Return("hello world!")
 //
-// nolint: unparam
-func (r *Request) After(d time.Duration) *Request {
+// Deprecated: Use [go.nhat.io/httpmock.Expectation.After] instead.
+func (r *Request) After(d time.Duration) *Request { //nolint: unparam
 	r.lock()
 	defer r.unlock()
+
 	r.waitTime = d
 
 	return r

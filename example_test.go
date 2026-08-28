@@ -28,7 +28,7 @@ func ExampleMockServer_simple() {
 	resp, err := http.DefaultClient.Do(req)
 	must.NotFail(err)
 
-	defer resp.Body.Close() // nolint: errcheck
+	defer resp.Body.Close() //nolint: errcheck
 
 	output, err := io.ReadAll(resp.Body)
 	must.NotFail(err)
@@ -59,7 +59,7 @@ func ExampleMockServer_customHandle() {
 	resp, err := http.DefaultClient.Do(req)
 	must.NotFail(err)
 
-	defer resp.Body.Close() // nolint: errcheck
+	defer resp.Body.Close() //nolint: errcheck
 
 	output, err := io.ReadAll(resp.Body)
 	must.NotFail(err)
@@ -115,7 +115,7 @@ func ExampleMockServer_alwaysFailPlanner() {
 	resp, err := http.DefaultClient.Do(req)
 	must.NotFail(err)
 
-	defer resp.Body.Close() // nolint: errcheck
+	defer resp.Body.Close() //nolint: errcheck
 
 	output, err := io.ReadAll(resp.Body)
 	must.NotFail(err)

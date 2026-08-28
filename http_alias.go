@@ -2,7 +2,7 @@ package httpmock
 
 import "net/http"
 
-// nolint: revive,nolintlint
+// nolint: revive
 const (
 	MethodGet     = http.MethodGet
 	MethodHead    = http.MethodHead

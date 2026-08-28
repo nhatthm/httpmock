@@ -27,7 +27,7 @@ func TestIsNil(t *testing.T) {
 		},
 		{
 			scenario: "nil interface",
-			value:    (error)(nil),
+			value:    error(nil),
 			expected: true,
 		},
 		{
@@ -42,7 +42,6 @@ func TestIsNil(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 

@@ -130,8 +130,7 @@ func formatType(v any) string {
 	}
 }
 
-// nolint: cyclop
-func formatValue(v any) string {
+func formatValue(v any) string { //nolint: cyclop
 	if v == nil {
 		return "<nil>"
 	}

@@ -59,10 +59,9 @@ type RequestBuilder struct {
 }
 
 // BuildRequest builds a Request.
-// nolint: revive
-func BuildRequest() *RequestBuilder {
+func BuildRequest() *RequestBuilder { //nolint: revive
 	return &RequestBuilder{
-		r: httptest.NewRequest(http.MethodGet, `/`, newReader(new(bytes.Buffer), nil, nil)),
+		r: httptest.NewRequest(http.MethodGet, `/`, newReader(new(bytes.Buffer), nil, nil)), //nolint: noctx
 	}
 }
 

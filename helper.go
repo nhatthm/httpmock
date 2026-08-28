@@ -16,8 +16,7 @@ import (
 )
 
 // DoRequest calls DoRequestWithTimeout with 1 second timeout.
-// nolint:thelper // It is called in DoRequestWithTimeout.
-func DoRequest(
+func DoRequest( //nolint: thelper // It is called in DoRequestWithTimeout.
 	tb testing.TB,
 	method, requestURI string,
 	headers Header,
@@ -84,7 +83,7 @@ func DoRequestWithTimeout(
 func FailResponse(w http.ResponseWriter, format string, args ...any) error {
 	w.WriteHeader(http.StatusInternalServerError)
 
-	_, err := fmt.Fprintf(w, format, args...)
+	_, err := fmt.Fprintf(w, format, args...) //nolint: gosec
 
 	return err
 }

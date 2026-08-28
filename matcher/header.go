@@ -23,7 +23,7 @@ func (m HeaderMatcher) Match(header http.Header) error {
 		}
 
 		if !matched {
-			return fmt.Errorf("header %q with value %q expected, %q received", h, m.Expected(), value) // nolint: goerr113
+			return fmt.Errorf("header %q with value %q expected, %q received", h, m.Expected(), value) //nolint: err113
 		}
 	}
 

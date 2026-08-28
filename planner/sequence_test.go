@@ -133,7 +133,6 @@ Error: expected request body: {"id": 42}, received:
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 

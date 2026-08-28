@@ -56,7 +56,6 @@ Error: request uri "/users" expected, "/" received
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
@@ -149,7 +148,6 @@ Error: header "Authorization" with value "Bearer token" expected, "Bearer foobar
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
@@ -252,7 +250,6 @@ Error: body does not match expectation, received: {"id":42}
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
