@@ -1,11 +1,8 @@
-> ⚠️ From `v0.9.0`, the project will be rebranded to `go.nhat.io/httpmock`. `v.8.x` is the last version with `github.com/nhatthm/httpmock`.
-
 # HTTP Mock for Golang
 
 [![GitHub Releases](https://img.shields.io/github/v/release/nhatthm/httpmock)](https://github.com/nhatthm/httpmock/releases/latest)
 [![Build Status](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml/badge.svg)](https://github.com/nhatthm/httpmock/actions/workflows/test.yaml)
 [![codecov](https://codecov.io/gh/nhatthm/httpmock/branch/master/graph/badge.svg?token=eTdAgDE2vR)](https://codecov.io/gh/nhatthm/httpmock)
-[![Go Report Card](https://goreportcard.com/badge/go.nhat.io/httpmock)](https://goreportcard.com/report/go.nhat.io/httpmock)
 [![GoDevDoc](https://img.shields.io/badge/dev-doc-00ADD8?logo=go)](https://pkg.go.dev/go.nhat.io/httpmock)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=PJZSGJN57TDJY)
 
@@ -34,7 +31,7 @@ support HTTP behavioral tests.
 
 ## Prerequisites
 
-- `Go >= 1.18`
+- `Go >= 1.23`
 
 [<sub><sup>[table of contents]</sup></sub>](#table-of-contents)
 
@@ -112,9 +109,7 @@ func TestSimple(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.scenario, func(t *testing.T) {
+	for _, tc := range testCases {t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
 			srv := tc.mockServer(t)

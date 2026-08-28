@@ -67,7 +67,7 @@ func MockResponseWriter(mocks ...func(w *ResponseWriter)) ResponseWriterMocker {
 		w := mockResponseWriter(mocks...)
 
 		tb.Cleanup(func() {
-			assert.True(tb, w.Mock.AssertExpectations(tb))
+			assert.True(tb, w.AssertExpectations(tb))
 		})
 
 		return w

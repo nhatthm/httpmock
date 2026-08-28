@@ -4,7 +4,7 @@ import "net/textproto"
 
 // Header is an alias of a string map.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock.Header] instead.
 type Header = map[string]string
 
 // mergeHeaders merges a list of headers with some defaults. If a default header appears in the given headers, it

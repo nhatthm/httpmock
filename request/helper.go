@@ -8,35 +8,35 @@ import (
 
 // Method returns the method of the expectation.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock/planner.Expectation.Method] instead.
 func Method(req *Request) string {
 	return req.method
 }
 
 // URIMatcher returns the uri matcher of the expectation.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock/planner.Expectation.URIMatcher] instead.
 func URIMatcher(req *Request) matcher.Matcher {
 	return req.requestURI
 }
 
 // HeaderMatcher returns the header matcher of the expectation.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock/planner.Expectation.HeaderMatcher] instead.
 func HeaderMatcher(req *Request) matcher.HeaderMatcher {
 	return req.requestHeader
 }
 
 // BodyMatcher returns the body matcher of the expectation.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock/planner.Expectation.BodyMatcher] instead.
 func BodyMatcher(req *Request) *matcher.BodyMatcher {
 	return req.requestBody
 }
 
 // Repeatability gets the repeatability of the expectation.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock/planner.Expectation.RemainTimes] instead.
 func Repeatability(r *Request) int {
 	return r.repeatability
 }
@@ -50,14 +50,14 @@ func SetRepeatability(r *Request, i int) {
 
 // CountCall records a call to the expectation.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock/planner.Expectation.Fulfilled] instead.
 func CountCall(r *Request) {
 	r.totalCalls++
 }
 
 // NumCalls returns the number of times the expectation was called.
 //
-// Deprecated: the package will be removed in the future.
+// Deprecated: Use [go.nhat.io/httpmock/planner.Expectation.FulfilledTimes] instead.
 func NumCalls(r *Request) int {
 	return r.totalCalls
 }

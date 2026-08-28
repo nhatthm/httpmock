@@ -13,6 +13,7 @@ import (
 
 type TestingT struct {
 	strings.Builder
+
 	clean func()
 }
 

@@ -51,7 +51,6 @@ func TestBodyMatcher_Match(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.scenario, func(t *testing.T) {
 			t.Parallel()
 
@@ -77,7 +76,7 @@ func TestBodyMatcher_Match_ReuseBody(t *testing.T) {
 	assert.NoError(t, err)
 
 	body, err := io.ReadAll(r.Body)
-	defer r.Body.Close() // nolint: errcheck
+	defer r.Body.Close() //nolint: errcheck
 
 	assert.Equal(t, expected, string(body))
 	assert.NoError(t, err)

@@ -9,7 +9,7 @@ func isNil(v any) bool {
 
 	val := reflect.ValueOf(v)
 
-	// nolint: exhaustive
+	//nolint: exhaustive
 	switch val.Kind() {
 	case reflect.Chan,
 		reflect.Func,
