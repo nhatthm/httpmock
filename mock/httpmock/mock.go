@@ -6,7 +6,6 @@ import (
 	"go.nhat.io/httpmock"
 )
 
-//go:generate mockery --name expectation --structname Expectation --output . --outpkg httpmock --filename expectation.go
 type expectation interface { //nolint: unused
 	httpmock.Expectation
 	httpmock.ExpectationHandler

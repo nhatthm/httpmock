@@ -1,9 +1,11 @@
 MODULE_NAME=httpmock
 
 GOLANGCI_LINT_VERSION ?= v2.13.0
+MOCKERY_VERSION ?= v3.7.4
 
 GO ?= go
 GOLANGCI_LINT ?= $(shell go env GOPATH)/bin/golangci-lint-$(GOLANGCI_LINT_VERSION)
+MOCKERY ?= $(shell $(GO) env GOPATH)/bin/mockery-$(MOCKERY_VERSION)
 
 VENDOR_DIR = vendor
 GOROOT_DIR = $(shell $(GO) env GOROOT)
@@ -56,6 +58,14 @@ test-unit:
 	@printf -- "$(OK_COLOR)==> unit test$(NO_COLOR)\n"
 	$(Q)$(GO) test -gcflags=-l -coverprofile=unit.coverprofile -covermode=atomic -race ./...
 
+.PHONY: gen
+gen: gen-mocks
+
+.PHONY: gen-mocks
+gen-mocks: $(MOCKERY)
+	@printf -- "$(OK_COLOR)==> generate mocks$(NO_COLOR)\n"
+	$(Q)GOROOT=$(GOROOT_DIR) PATH="$(GOROOT_DIR)/bin:$$PATH" $(MOCKERY) --config .mockery.yaml
+
 .PHONY: $(GITHUB_OUTPUT)
 $(GITHUB_OUTPUT):
 	@echo "MODULE_NAME=$(MODULE_NAME)" >> "$@"
@@ -65,6 +75,11 @@ $(GOLANGCI_LINT):
 	@printf -- "$(OK_COLOR)==> Installing golangci-lint $(GOLANGCI_LINT_VERSION)$(NO_COLOR)\n"
 	$(Q)curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b /tmp "$(GOLANGCI_LINT_VERSION)"
 	$(Q)$(call install-dep,/tmp/golangci-lint,$(GOLANGCI_LINT))
+
+$(MOCKERY):
+	@printf -- "$(OK_COLOR)==> Installing mockery $(MOCKERY_VERSION)$(NO_COLOR)\n"
+	$(Q)GOBIN=/tmp $(GO) install github.com/vektra/mockery/$(shell echo "$(MOCKERY_VERSION)" | cut -d '.' -f 1)@$(MOCKERY_VERSION)
+	$(Q)$(call install-dep,/tmp/mockery,$(MOCKERY))
 
 define install-dep
 	if [ "$(1)" != "$(2)" ]; then \
