@@ -24,8 +24,8 @@ github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 h1:BHyfKlQyqbsFN5p3Ifn
 github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82/go.mod h1:lgjkn3NuSvDfVJdfcVVdX+jpBxNmX4rDAzaS45IcYoM=
 go.nhat.io/matcher/v2 v2.0.0 h1:W+rbHi0hKuZHtOQH4U5g+KwyKyfVioIxrxjoGRcUETE=
 go.nhat.io/matcher/v2 v2.0.0/go.mod h1:cL5oYp0M9A4L8jEGqjmUfy+k7AXVDddoVt6aYIL1r5g=
-go.nhat.io/wait v0.2.0 h1:pM01ar6McKzjRFt2YChTu9Lgl6v1vvZ8SKz+vl3asV0=
-go.nhat.io/wait v0.2.0/go.mod h1:87v6R+fvE8gZarSj9Mo7u28yM3S2JIbo8sovMRs8kw8=
+go.nhat.io/wait v0.2.1 h1:2eJOir7Jbt04aZx1ubkq2jRMiXaYzdIoj+iEc8vBvXU=
+go.nhat.io/wait v0.2.1/go.mod h1:87v6R+fvE8gZarSj9Mo7u28yM3S2JIbo8sovMRs8kw8=
 go.yaml.in/yaml/v3 v3.0.5 h1:N6y/pJk8buWs9NY5ERU2HSMfm+IuD/OtfdAnq6kESPw=
 go.yaml.in/yaml/v3 v3.0.5/go.mod h1:HVTZu1O7/Vkt2N+BFy8Zza+lnLsABggaTM2ZpNIGuKg=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
