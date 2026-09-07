@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/stretchr/testify v1.12.1
 	go.nhat.io/matcher/v2 v2.0.0
-	go.nhat.io/wait v0.2.0
+	go.nhat.io/wait v0.2.1
 )
 
 require (
