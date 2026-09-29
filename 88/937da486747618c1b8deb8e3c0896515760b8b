@@ -1,0 +1,44 @@
+mock/http/response_writer.go
+  h_1bffb29edaf571 3,9,14-35
+mock/httpmock/expectation.go
+  h_1bffb29edaf571 3,9,13-14,17-37
+.mockery.yaml
+  s_4883be594948a6::t_bec156645efaf9 5
+  s_4883be594948a6::t_6de32e151ad192 2-4
+  s_4883be594948a6::t_489b3ad67388ff 6-8
+Makefile
+  h_1bffb29edaf571 3-4
+server_test.go
+  h_1bffb29edaf571 305,307,309,341
+expectation_internal_test.go
+  h_1bffb29edaf571 277,279,295,297,315,317,335,337,362-363,365,395,397,418,420,498,500
+planner/sequence_test.go
+  h_1bffb29edaf571 32-35,47-50,64-66,69,85-88,105-107,110-111,123-125,128-129,165,177
+example_test.go
+  h_1bffb29edaf571 98-100
+mock/planner/planner.go
+  h_1bffb29edaf571 3,9,12-13,16-36
+planner/matcher_test.go
+  h_1bffb29edaf571 21,63-66,155-158,257-260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "88937da486747618c1b8deb8e3c0896515760b8b",
+  "prompts": {},
+  "humans": {
+    "h_1bffb29edaf571": {
+      "author": "Nhat <contact@nhat.me>"
+    }
+  },
+  "sessions": {
+    "s_4883be594948a6": {
+      "agent_id": {
+        "tool": "github-copilot-jetbrains",
+        "id": "1790692241928",
+        "model": "unknown"
+      },
+      "human_author": "Nhat <contact@nhat.me>"
+    }
+  }
+}
