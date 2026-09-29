@@ -29,10 +29,10 @@ func TestSequence(t *testing.T) {
 			scenario: "method mismatched",
 			request:  http.BuildRequest().WithMethod(http.MethodPost).Build(),
 			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("HeaderMatcher").Maybe().Return(nil)
-				e.On("BodyMatcher").Maybe().Return(nil)
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().HeaderMatcher().Maybe().Return(nil)
+				e.EXPECT().BodyMatcher().Maybe().Return(nil)
 			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
@@ -44,10 +44,10 @@ Error: method "GET" expected, "POST" received
 			scenario: "uri mismatched",
 			request:  http.BuildRequest().WithURI("/users").Build(),
 			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("HeaderMatcher").Maybe().Return(nil)
-				e.On("BodyMatcher").Maybe().Return(nil)
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().HeaderMatcher().Maybe().Return(nil)
+				e.EXPECT().BodyMatcher().Maybe().Return(nil)
 			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
@@ -61,12 +61,12 @@ Error: request uri "/" expected, "/users" received
 				WithHeader(`Authorization`, `Bearer foobar`).
 				Build(),
 			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("HeaderMatcher").Maybe().Return(matcher.HeaderMatcher{
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().HeaderMatcher().Maybe().Return(matcher.HeaderMatcher{
 					"Authorization": matcher.Match(`Bearer token`),
 				})
-				e.On("BodyMatcher").Maybe().Return(nil)
+				e.EXPECT().BodyMatcher().Maybe().Return(nil)
 			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
@@ -82,10 +82,10 @@ Error: header "Authorization" with value "Bearer token" expected, "Bearer foobar
 			scenario: "payload mismatched",
 			request:  http.BuildRequest().Build(),
 			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("HeaderMatcher").Maybe().Return(nil)
-				e.On("BodyMatcher").Maybe().Return(matcher.Body(payload))
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().HeaderMatcher().Maybe().Return(nil)
+				e.EXPECT().BodyMatcher().Maybe().Return(matcher.Body(payload))
 			}),
 			expectedRemain: 1,
 			expectedError: `Expected: GET /
@@ -102,13 +102,13 @@ Error: expected request body: {"id": 42}, received:
 				WithHeader("Authorization", "Bearer foobar").
 				Build(),
 			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("HeaderMatcher").Maybe().Return(matcher.HeaderMatcher{
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().HeaderMatcher().Maybe().Return(matcher.HeaderMatcher{
 					"Authorization": matcher.Match(regexp.MustCompile(`^Bearer `)),
 				})
-				e.On("BodyMatcher").Maybe().Return(matcher.Body(payload))
-				e.On("RemainTimes").Return(uint(0))
+				e.EXPECT().BodyMatcher().Maybe().Return(matcher.Body(payload))
+				e.EXPECT().RemainTimes().Return(uint(0))
 			}),
 			expectedRemain:  1,
 			expectedRequest: true,
@@ -120,13 +120,13 @@ Error: expected request body: {"id": 42}, received:
 				WithHeader("Authorization", "Bearer foobar").
 				Build(),
 			mockExpectation: plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("HeaderMatcher").Maybe().Return(matcher.HeaderMatcher{
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().HeaderMatcher().Maybe().Return(matcher.HeaderMatcher{
 					"Authorization": matcher.Match(regexp.MustCompile(`^Bearer `)),
 				})
-				e.On("BodyMatcher").Maybe().Return(matcher.Body(payload))
-				e.On("RemainTimes").Return(uint(1))
+				e.EXPECT().BodyMatcher().Maybe().Return(matcher.Body(payload))
+				e.EXPECT().RemainTimes().Return(uint(1))
 			}),
 			expectedRequest: true,
 		},
@@ -162,7 +162,7 @@ func TestSequence_Empty(t *testing.T) {
 
 	assert.True(t, p.IsEmpty())
 
-	p.Expect(plannermock.NoMockExpectation(t))
+	p.Expect(plannermock.NopExpectation(t))
 
 	assert.False(t, p.IsEmpty())
 
@@ -174,7 +174,7 @@ func TestSequence_Empty(t *testing.T) {
 func TestSequence_Reset(t *testing.T) {
 	t.Parallel()
 
-	e := plannermock.NoMockExpectation(t)
+	e := plannermock.NopExpectation(t)
 	p := planner.Sequence()
 
 	p.Expect(e)

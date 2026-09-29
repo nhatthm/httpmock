@@ -302,11 +302,11 @@ func TestServer_WithPlanner(t *testing.T) {
 	testingT := T()
 
 	p := planner.Mock(func(p *planner.Planner) {
-		p.On("Expect", mock.Anything)
+		p.EXPECT().Expect(mock.Anything)
 
-		p.On("IsEmpty").Return(false)
+		p.EXPECT().IsEmpty().Return(false)
 
-		p.On("Plan", mock.Anything).
+		p.EXPECT().Plan(mock.Anything).
 			Return(nil, errors.New("you shall not pass"))
 	})(t)
 
@@ -338,7 +338,7 @@ func TestServer_WithPlanner_Panic(t *testing.T) {
 		s.ExpectGet("/").
 			Return(`hello world!`)
 
-		s.WithPlanner(planner.NoMockPlanner(t))
+		s.WithPlanner(planner.NopPlanner(t))
 	})
 }
 
