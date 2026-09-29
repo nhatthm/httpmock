@@ -18,7 +18,7 @@ func TestMatchURI(t *testing.T) {
 
 	testCases := []struct {
 		scenario      string
-		uri           any
+		uri           matcher.Matcher
 		expectedError string
 	}{
 		{
@@ -60,10 +60,10 @@ Error: request uri "/users" expected, "/" received
 			t.Parallel()
 
 			expected := plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("URIMatcher").Return(tc.uri)
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("HeaderMatcher").Maybe().Return(nil)
-				e.On("BodyMatcher").Maybe().Return(nil)
+				e.EXPECT().URIMatcher().Return(tc.uri)
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().HeaderMatcher().Maybe().Return(nil)
+				e.EXPECT().BodyMatcher().Maybe().Return(nil)
 			})(t)
 
 			err := planner.MatchURI(expected, http.BuildRequest().Build())
@@ -152,10 +152,10 @@ Error: header "Authorization" with value "Bearer token" expected, "Bearer foobar
 			t.Parallel()
 
 			expected := plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("HeaderMatcher").Return(tc.headerMatcher)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("BodyMatcher").Maybe().Return(nil)
+				e.EXPECT().HeaderMatcher().Return(tc.headerMatcher)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().BodyMatcher().Maybe().Return(nil)
 			})(t)
 
 			err := planner.MatchHeader(expected, tc.request)
@@ -254,10 +254,10 @@ Error: body does not match expectation, received: {"id":42}
 			t.Parallel()
 
 			expected := plannermock.MockExpectation(func(e *plannermock.Expectation) {
-				e.On("BodyMatcher").Return(tc.bodyMatcher)
-				e.On("URIMatcher").Maybe().Return(matcher.Match("/"))
-				e.On("Method").Maybe().Return(http.MethodGet)
-				e.On("HeaderMatcher").Maybe().Return(nil)
+				e.EXPECT().BodyMatcher().Return(tc.bodyMatcher)
+				e.EXPECT().URIMatcher().Maybe().Return(matcher.Match("/"))
+				e.EXPECT().Method().Maybe().Return(http.MethodGet)
+				e.EXPECT().HeaderMatcher().Maybe().Return(nil)
 			})(t)
 
 			err := planner.MatchBody(expected, tc.request)

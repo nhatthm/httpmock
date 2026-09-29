@@ -95,9 +95,9 @@ func ExampleMockServer_alwaysFailPlanner() {
 	srv := httpmock.MockServer(func(s *httpmock.Server) {
 		p := &plannermock.Planner{}
 
-		p.On("IsEmpty").Return(false)
-		p.On("Expect", mock.Anything)
-		p.On("Plan", mock.Anything).
+		p.EXPECT().IsEmpty().Return(false)
+		p.EXPECT().Expect(mock.Anything)
+		p.EXPECT().Plan(mock.Anything).
 			Return(nil, errors.New("always fail"))
 
 		s.WithPlanner(p)

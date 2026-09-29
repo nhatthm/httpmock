@@ -274,9 +274,9 @@ func TestRequestExpectation_Return(t *testing.T) {
 					Return(tc.body)
 
 				w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-					w.On("WriteHeader", StatusOK)
+					w.EXPECT().WriteHeader(StatusOK)
 
-					w.On("Write", tc.expectedBody).
+					w.EXPECT().Write(tc.expectedBody).
 						Return(0, nil)
 				})(t)
 
@@ -292,9 +292,9 @@ func TestRequestExpectation_Returnf(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", StatusOK)
+		w.EXPECT().WriteHeader(StatusOK)
 
-		w.On("Write", []byte(`hello john`)).
+		w.EXPECT().Write([]byte(`hello john`)).
 			Return(0, nil)
 	})(t)
 
@@ -312,9 +312,9 @@ func TestRequestExpectation_ReturnJSON(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", StatusOK)
+		w.EXPECT().WriteHeader(StatusOK)
 
-		w.On("Write", []byte(`{"foo":"bar"}`)).
+		w.EXPECT().Write([]byte(`{"foo":"bar"}`)).
 			Return(0, nil)
 	})(t)
 
@@ -332,9 +332,9 @@ func TestRequestExpectation_ReturnFile(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", StatusOK)
+		w.EXPECT().WriteHeader(StatusOK)
 
-		w.On("Write", []byte("hello world!\n")).
+		w.EXPECT().Write([]byte("hello world!\n")).
 			Return(0, nil)
 	})(t)
 
@@ -359,10 +359,10 @@ func TestRequestExpectation_Handle_Success(t *testing.T) {
 	responseHeader := http.Header{}
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("Header").Return(responseHeader)
-		w.On("WriteHeader", 200)
+		w.EXPECT().Header().Return(responseHeader)
+		w.EXPECT().WriteHeader(200)
 
-		w.On("Write", []byte(`{"id":42}`)).
+		w.EXPECT().Write([]byte(`{"id":42}`)).
 			Return(9, nil)
 	})(t)
 
@@ -392,9 +392,9 @@ func TestRequestExpectation_Handle_RunError(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", 500)
+		w.EXPECT().WriteHeader(500)
 
-		w.On("Write", []byte(`run error`)).
+		w.EXPECT().Write([]byte(`run error`)).
 			Return(0, nil)
 	})(t)
 
@@ -415,9 +415,9 @@ func TestRequestExpectation_Handle_WriteError(t *testing.T) {
 	t.Parallel()
 
 	w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-		w.On("WriteHeader", 200)
+		w.EXPECT().WriteHeader(200)
 
-		w.On("Write", []byte(nil)).
+		w.EXPECT().Write([]byte(nil)).
 			Return(0, errors.New("write error"))
 	})(t)
 
@@ -495,9 +495,9 @@ func TestRequestExpectation_Wait(t *testing.T) {
 			t.Parallel()
 
 			w := http.MockResponseWriter(func(w *http.ResponseWriter) {
-				w.On("WriteHeader", 200)
+				w.EXPECT().WriteHeader(200)
 
-				w.On("Write", []byte(nil)).
+				w.EXPECT().Write([]byte(nil)).
 					Return(0, nil)
 			})(t)
 

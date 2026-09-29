@@ -1,0 +1,24 @@
+dir: '{{ .InterfaceDir }}/mock'
+structname: '{{ .InterfaceName }}'
+filename: "{{ .InterfaceName | snakecase }}.go"
+pkgname: mock
+template: "https://raw.githubusercontent.com/nhatthm/mockery-template/0.3.0/templates/testify-mocker.templ"
+template-data:
+  unroll-variadic: true
+packages:
+  go.nhat.io/httpmock/mock/httpmock:
+    config:
+      dir: mock/httpmock
+      include-interface-regex: ^(expectation)$
+      pkgname: httpmock
+      structname: "{{ .InterfaceName | firstUpper }}"
+  go.nhat.io/httpmock/planner:
+    config:
+      dir: mock/planner
+      include-interface-regex: ^(Expectation|Planner)$
+      pkgname: planner
+  net/http:
+    config:
+      dir: mock/http
+      include-interface-regex: ^(ResponseWriter)$
+      pkgname: http
